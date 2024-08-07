@@ -1,0 +1,4 @@
+D:/Test_Temp/cmake-build-debug/CMakeFiles/keyboard.dir
+D:/Test_Temp/cmake-build-debug/CMakeFiles/main.dir
+D:/Test_Temp/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/Test_Temp/cmake-build-debug/CMakeFiles/rebuild_cache.dir
