@@ -630,7 +630,7 @@ void PressKey(char *key) // 按键
 }
 
 
-void WriteStr(char str_print[], int str_size)
+void WriteStr(const char str_print[], int str_size)
 {
     bool shift_up = false;
     // 输入英文字符窜的函数
@@ -827,3 +827,53 @@ void WriteStr(char str_print[], int str_size)
         }
     }
 }
+
+void copy_str_in(copy_str_structs self)  // 复制到剪切板的函数，后续包裹在CopyStr函数中
+{
+    if (OpenClipboard(NULL))
+    {
+        // 清空剪切板内容
+        EmptyClipboard();
+
+        // 分配内存并将文本内容复制到全局内存块
+        HGLOBAL hglbCopy = GlobalAlloc(GMEM_MOVEABLE, strlen(self.textToCopy) + 1); // +1是为了包含字符串的结尾 null 字符
+        if (hglbCopy != NULL) {
+            LPVOID lpCopy = GlobalLock(hglbCopy);
+            strcpy((char*)lpCopy, self.textToCopy);
+            GlobalUnlock(hglbCopy);
+
+            // 将全局内存块设置为剪切板内容
+            SetClipboardData(CF_TEXT, hglbCopy);
+        }
+
+        // 关闭剪切板
+        CloseClipboard();
+    }
+}
+
+void CopyStr(const char *str)   // 复制字符窜到剪切板
+{  // 复制字符窜到剪切板
+    copy_str_structs self = {str, copy_str_in};
+    self.copy_str_in(self);
+}
+
+void PasteStr()
+{
+    // 打开剪切板，NULL 表示当前线程
+    if (OpenClipboard(NULL))
+    {
+        // 从剪切板获取 CF_TEXT 格式的数据句柄
+        HANDLE hClipboardData = GetClipboardData(CF_TEXT);
+
+        // 使用 GlobalLock 锁定内存并返回一个指向实际数据的指针
+        // 这个指针就是 clipboardText，它指向剪切板中的文本数据
+        char* clipboardText = (char*)GlobalLock(hClipboardData);
+
+        // 解锁之前锁定的全局内存
+        GlobalUnlock(hClipboardData);
+
+        // 关闭剪切板
+        CloseClipboard();
+    }
+}
+

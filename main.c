@@ -3,7 +3,7 @@
 
 int main()
 {
-    PressKey("{");
+    CopyStr("±ÈºÃ£¡£¡");
     return 0;
 }
 
