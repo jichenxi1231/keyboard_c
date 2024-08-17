@@ -124,6 +124,8 @@ void ClearHotKey(); // 注销快捷键(自动注销快捷键调用释放内存的函数)
 
 void ListenHotKEy();  // 监听快捷键
 
+void exit_check_work();  // 突然结束检查
+
 
 /************* 获取坐标的函数 ***************/
 ScreenSizeGet GetScreenSIze(bool out_put);  // 获取分辨率函数，布偶值选择是否输出坐标
@@ -137,7 +139,6 @@ PasteStrStructs PasteStr();  // 存储返回的字符窜内容
 void ReleaseKey(WORD vkCode, bool *keyUpFlag);  // 确保按键真被按下
 void cleanup_check();  // 执行清理任务的函数
 void handle_sigint(int sig);  // 检查是否被接受的终止信号
-void exit_check_work();  // 突然结束检查
 
 
 

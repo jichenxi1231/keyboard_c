@@ -1215,9 +1215,13 @@ typedef struct {
     size_t length; // 文本长度
 } ClipboardText;
 
-PasteStrStructs PasteStr() {
-    PasteStrStructs result = {NULL, 0};
+PasteStrStructs PasteStr()
+{
+//    PasteStrStructs str = PasteStr();  // 使用方法
+//    printf("%s", str.text);
+//    FreePasteStr(&str);
 
+    PasteStrStructs result = {NULL, 0};
     if (OpenClipboard(NULL)) {
         HANDLE hClipboardData = GetClipboardData(CF_TEXT);
         if (hClipboardData != NULL) {
