@@ -3,7 +3,6 @@
 #include <windows.h>
 #include <stdbool.h>
 
-
 /************* press up flag **************/
 
 typedef struct PressUpFlag  // 最终处理没有释放的按钮,true为释放
@@ -20,7 +19,7 @@ typedef struct PressUpFlag  // 最终处理没有释放的按钮,true为释放
     char *mouse_name;  // 传入参数按键名称
 }Flags;
 
-Flags flag_up = {true, true, true, true, true, true, true, true, 0, NULL};  // 默认没抬起
+Flags flag_up = {true, true, true, true, true, true, true, true, 0, ""};  // 默认没抬起
 
 /******************************************/
 
@@ -59,7 +58,7 @@ typedef struct HotKey
     char *key2;          // 第二个键名
     char *key3;          // 第三个键名
     char *key4;          // 第四个键名
-    void (*function)(void);  // 被调用的函数指针
+//    void (*function)(void);  // 被调用的函数指针
 } AddHotKeyInput;  // 接受传入的参数(快捷键名称)
 
 // 使用一个链表来存储多个快捷键
@@ -68,6 +67,80 @@ typedef struct HotKeyList
     AddHotKeyInput data;  // 快捷键数据, 存储一个 AddHotKeyInput 结构体实例，即快捷键的数据。
     struct HotKeyList *next;  // 指向下一条记录的指针，指向下一个 HotKeyList 结构体实例的指针，用于链接多个节点形成链表。
 } HotKeyList;
+
+// 定义一个函数指针类型
+typedef void (*FunctionPtr)();
+
+// 定义一个函数数组结构体
+typedef struct
+{
+    /********** 四个快捷键数组大小 *********/
+    int size_four_key_ctrl_alt_shift;
+    int size_four_key_ctrl_shift_alt;
+    int size_four_key_alt_ctrl_shift;
+    int size_four_key_alt_shift_ctrl;
+    int size_four_key_shift_ctrl_alt;
+    int size_four_key_shift_alt_ctrl;
+////////////////////////////////////////////
+    int size_three_ctrl_alt;  // 三个快捷键
+    int size_three_ctrl_shift;
+    int size_three_alt_ctrl;
+    int size_three_alt_shift;
+    int size_three_shift_ctrl;
+    int size_three_shift_alt;
+///////////////////////////////////////////////
+    int size_two_ctrl;  // 双快捷键
+    int size_two_alt;
+    int size_two_shift;
+
+    int size_one;
+
+    /**** 四个快捷键名字 ****/
+    char *four_key_name_ctrl_alt_shift[53];
+    char *four_key_name_ctrl_shift_alt[53];
+    char *four_key_name_alt_ctrl_shift[53];
+    char *four_key_name_alt_shift_ctrl[53];
+    char *four_key_name_shift_ctrl_alt[53];
+    char *four_key_name_shift_alt_ctrl[53];
+
+
+///////////////////////////////////////////////////////
+    char *three_key_name_ctrl_alt[53];  // 三快捷键
+    char *three_key_name_ctrl_shift[53];
+    char *three_key_name_alt_ctrl[53];
+    char *three_key_name_alt_shift[53];
+    char *three_key_name_shift_ctrl[53];
+    char *three_key_name_shift_alt[53];
+
+    char *tow_key_name_ctrl[53];  // 双快捷键
+    char *tow_key_name_alt[53];
+    char *tow_key_name_shift[53];
+
+    char *one_key_name[53];
+
+    FunctionPtr *funcArray_four_key_ctrl_alt_shift;
+    FunctionPtr *funcArray_four_key_ctrl_shift_alt;
+    FunctionPtr *funcArray_four_key_alt_ctrl_shift;
+    FunctionPtr *funcArray_four_key_alt_shift_ctrl;
+    FunctionPtr *funcArray_four_key_shift_ctrl_alt;
+    FunctionPtr *funcArray_four_key_shift_alt_ctrl;
+
+    // 三个快捷键
+    FunctionPtr *funcArray_three_key_ctrl_alt;
+    FunctionPtr *funcArray_three_key_ctrl_shift;
+    FunctionPtr *funcArray_three_key_alt_ctrl;
+    FunctionPtr *funcArray_three_key_alt_shift;
+    FunctionPtr *funcArray_three_key_shift_ctrl;
+    FunctionPtr *funcArray_three_key_shift_alt;
+
+    FunctionPtr *funcArray_two_key_ctrl;  // 双快捷键
+    FunctionPtr *funcArray_two_key_alt;
+    FunctionPtr *funcArray_two_key_shift;
+
+    FunctionPtr *funcArray_one_key;
+
+}Func_List;  // 配合快捷键注册与判断
+
 
 /********* 获取剪切板内容 *********/
 typedef struct {
@@ -81,7 +154,6 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);  // 快捷
 
 void freeHotKeys();  // 释放结构体内存函数
 
-void RegisterHotKeys();  // // 注册一个键盘低级钩子，监听快捷键
 
 /********************************************/
 
@@ -89,7 +161,7 @@ void copy_str_in(copy_str_structs self);  // 复制到剪切板的函数，后续包裹在CopyS
 
 
 
-/*********************************************************************************/
+/***************************** 主功能区 **************************************************/
 void MouseMoveTo(int x, int y);  // x,y坐标;
 
 void MouseDown(char *button);  // 鼠标按下键位
@@ -139,6 +211,7 @@ PasteStrStructs PasteStr();  // 存储返回的字符窜内容
 void ReleaseKey(WORD vkCode, bool *keyUpFlag);  // 确保按键真被按下
 void cleanup_check();  // 执行清理任务的函数
 void handle_sigint(int sig);  // 检查是否被接受的终止信号
+void free_funcs();  // 释放函数内存
 
 
 

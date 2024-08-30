@@ -808,7 +808,7 @@ void PressKey(char *key) // 按键
                            VK_F11, VK_F12, VK_ESCAPE, VK_SPACE, VK_DELETE, VK_TAB,
                            VK_RETURN, VK_CAPITAL, VK_CLEAR, VK_BACK, VK_LWIN, VK_PAUSE,
                            VK_PRIOR, VK_NEXT, VK_LEFT, VK_RIGHT, VK_DOWN, VK_UP, VK_INSERT
-                           };
+    };
 
     int symbol_not_shift_code[] = {VK_OEM_3, VK_OEM_4, VK_OEM_6, VK_OEM_5, VK_OEM_1, VK_OEM_7, 188,
                                    190, VK_OEM_2, VK_OEM_MINUS, VK_OEM_PLUS, 188, 190, VK_OEM_7,
@@ -1217,11 +1217,12 @@ typedef struct {
 
 PasteStrStructs PasteStr()
 {
-//    PasteStrStructs str = PasteStr();  // 使用方法
+//    PasteStrStructs str = PasteStr();
 //    printf("%s", str.text);
 //    FreePasteStr(&str);
 
     PasteStrStructs result = {NULL, 0};
+
     if (OpenClipboard(NULL)) {
         HANDLE hClipboardData = GetClipboardData(CF_TEXT);
         if (hClipboardData != NULL) {
@@ -1263,6 +1264,8 @@ HHOOK hHook = NULL;      // HHOOK 类型用于保存钩子句柄
 
 HotKeyList *head = NULL;  // 列表头指针
 
+Func_List fs;  // 实例化函数列表结构体
+
 
 // 键盘钩子的回调函数
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
@@ -1294,8 +1297,10 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
     // 遍历快捷键链表，*current = head存放列表头指针不为NULL时这个值就访问指向下一个实例的自己
     for (HotKeyList *current = head; current != NULL; current = current->next)
     {
+        // 四个快捷键  //
         if (current ->data.key1!=NULL && current ->data.key2!=NULL && current ->data.key3!=NULL && current ->data.key4!=NULL)
         {
+            // 四个快捷键
             for (int i = 0; i < button_list_len; i++)
             {
                 if (strcmp(current->data.key1, button_list[i]) == 0)
@@ -1323,15 +1328,143 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
                 PKBDLLHOOKSTRUCT pKey = (PKBDLLHOOKSTRUCT)lParam;
 
                 // 检查是否为键盘按下消息，且同时按下注册的快捷键
-                if (wParam == WM_KEYDOWN &&
-                    GetAsyncKeyState(key1_code) & 0x8000 &&  // 检查key1参数键是否按下
-                    GetAsyncKeyState(key2_code) & 0x8000 &&  // 检查key2参数键是否按下
-                    GetAsyncKeyState(key3_code) & 0x8000 &&  // 检查key3参数键是否按下
-                    pKey->vkCode == key4_code)                // 检查第四个键是否按下
+                if (
+                        GetAsyncKeyState(key1_code) & 0x8000 &&  // 检查key1参数键是否按下
+                        GetAsyncKeyState(key2_code) & 0x8000 &&  // 检查key2参数键是否按下
+                        GetAsyncKeyState(key3_code) & 0x8000 &&  // 检查key3参数键是否按下
+                        pKey->vkCode == key4_code)                // 检查第四个键是否按下
                 {
-                    // 执行相应的函数
-                    current->data.function();
-                    break;
+                    /*** ctrl alt shift ***/
+                    if (key1_code == VK_CONTROL && key2_code == VK_MENU && key3_code == VK_SHIFT)
+                    {
+                        for (int four_key_func=0; four_key_func<fs.size_four_key_ctrl_alt_shift; four_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.four_key_name_ctrl_alt_shift[four_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.four_key_name_ctrl_alt_shift[four_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_four_key_ctrl_alt_shift[four_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                        // ctrl shift alt  //
+                    else if (key1_code == VK_CONTROL && key2_code == VK_SHIFT && key3_code == VK_MENU)
+                    {
+                        for (int four_key_func=0; four_key_func<fs.size_four_key_ctrl_shift_alt; four_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.four_key_name_ctrl_shift_alt[four_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.four_key_name_ctrl_shift_alt[four_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_four_key_ctrl_shift_alt[four_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                        // alt ctrl shift //
+                    else if (key1_code == VK_MENU && key2_code == VK_CONTROL && key3_code == VK_SHIFT)
+                    {
+                        for (int four_key_func=0; four_key_func<fs.size_four_key_alt_ctrl_shift; four_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.four_key_name_alt_ctrl_shift[four_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.four_key_name_alt_ctrl_shift[four_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_four_key_alt_ctrl_shift[four_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                        // alt shift ctrl //
+                    else if (key1_code == VK_MENU && key2_code == VK_SHIFT && key3_code == VK_CONTROL)
+                    {
+                        for (int four_key_func=0; four_key_func<fs.size_four_key_alt_shift_ctrl; four_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.four_key_name_alt_shift_ctrl[four_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.four_key_name_alt_shift_ctrl[four_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_four_key_alt_shift_ctrl[four_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                        // shift ctrl alt  //
+                    else if (key1_code == VK_SHIFT && key2_code == VK_CONTROL && key3_code == VK_MENU)
+                    {
+                        for (int four_key_func=0; four_key_func<fs.size_four_key_shift_ctrl_alt; four_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.four_key_name_shift_ctrl_alt[four_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.four_key_name_shift_ctrl_alt[four_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_four_key_shift_ctrl_alt[four_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                        // shift alt ctrl  //
+                    else if (key1_code == VK_MENU && key2_code == VK_MENU && key3_code == VK_CONTROL)
+                    {
+                        for (int four_key_func=0; four_key_func<fs.size_four_key_shift_alt_ctrl; four_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.four_key_name_shift_alt_ctrl[four_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.four_key_name_shift_alt_ctrl[four_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_four_key_shift_alt_ctrl[four_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1361,16 +1494,142 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
             {
                 // 获取键盘钩子结构体
                 PKBDLLHOOKSTRUCT pKey = (PKBDLLHOOKSTRUCT)lParam;
-
                 // 检查是否为键盘按下消息，且同时按下注册的快捷键
-                if (wParam == WM_KEYDOWN &&
-                    GetAsyncKeyState(key1_code) & 0x8000 &&  // 检查key1参数键是否按下
+                if (GetAsyncKeyState(key1_code) & 0x8000 &&  // 检查key1参数键是否按下
                     GetAsyncKeyState(key2_code) & 0x8000 &&  // 检查key2参数键是否按下
                     pKey->vkCode == key3_code)                // 检查第三个键是否按下
                 {
-                    // 执行相应的函数
-                    current->data.function();
-                    break;
+                    /************** ctrl+alt ***************/
+                    if (key1_code== VK_CONTROL && key2_code == VK_MENU)
+                    {
+                        for (int three_key_func=0; three_key_func<fs.size_three_ctrl_alt; three_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.three_key_name_ctrl_alt[three_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.three_key_name_ctrl_alt[three_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_three_key_ctrl_alt[three_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                        /*************** ctrl+shift *****************/
+                    else if (key1_code==VK_CONTROL && key2_code == VK_SHIFT)
+                    {
+                        for (int three_key_func=0; three_key_func<fs.size_three_ctrl_shift; three_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.three_key_name_ctrl_shift[three_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        printf("name:%s, code:%d\n", button_list[key_end_code], button_code_list[key_end_code]);
+                                        if (strcmp(fs.three_key_name_ctrl_shift[three_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_three_key_ctrl_shift[three_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                        /************ alt+ctrl *************/
+                    else if (key1_code==VK_MENU && key2_code==VK_CONTROL)
+                    {
+                        for (int three_key_func=0; three_key_func<fs.size_three_alt_ctrl; three_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.three_key_name_alt_ctrl[three_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.three_key_name_alt_ctrl[three_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_three_key_alt_ctrl[three_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                        /*********** alt+shift ***********/
+                    else if (key1_code==VK_MENU && key2_code==VK_SHIFT)
+                    {
+                        for (int three_key_func=0; three_key_func<fs.size_three_alt_shift; three_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.three_key_name_alt_shift[three_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.three_key_name_alt_shift[three_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_three_key_alt_shift[three_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                        /************* shift+ctrl ************/
+                    else if (key1_code==VK_SHIFT && key2_code==VK_CONTROL)
+                    {
+                        for (int three_key_func=0; three_key_func<fs.size_three_shift_ctrl; three_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.three_key_name_shift_ctrl[three_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.three_key_name_shift_ctrl[three_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_three_key_shift_ctrl[three_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    /********** shift+alt ***********/
+                    if (key1_code==16 && key2_code==18)
+                    {
+                        for (int three_key_func=0; three_key_func<fs.size_three_shift_alt; three_key_func++)
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                            {
+                                if (strcmp(fs.three_key_name_shift_alt[three_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                    {
+                                        if (strcmp(fs.three_key_name_shift_alt[three_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_three_key_shift_alt[three_key_func]();  // ctrl函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return CallNextHookEx(NULL, nCode, wParam, lParam);
                 }
             }
         }
@@ -1380,7 +1639,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
         {
             for (int i = 0; i < button_list_len; i++)
             {
-                if (strcmp(current->data.key1, button_list[i]) == 0)
+                if (strcmp(current->data.key1, button_list[i]) == 0)  // 查看传入的值与键位列表对应获取虚键码
                 {
                     key1_code = button_code_list[i];
                 }
@@ -1396,20 +1655,78 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
                     PKBDLLHOOKSTRUCT pKey = (PKBDLLHOOKSTRUCT)lParam;
 
                     // 检查是否为键盘按下消息，且同时按下注册的快捷键
-                    if (wParam == WM_KEYDOWN &&
-                        GetAsyncKeyState(key1_code) & 0x8000 &&  // 检查key1参数键是否按下
-                        pKey->vkCode == key2_code)                // 检查第三个键是否按下
-                    {
-                        // 执行相应的函数
-                        current->data.function();
-                        break;
+                    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN &&  // 监听，第一个监听按键按下，第二个监听关于alt的按键按下
+                                                GetAsyncKeyState(key1_code) & 0x8000 &&  // 检查key1参数键是否按下
+                                                pKey->vkCode == key2_code)                // 检查第2个键是否按下
+                    {//////////////////////////////////////////////
+                        // 快捷键函数寻找
+                        if (key1_code == VK_CONTROL)  // 第一个键是ctrl
+                        {
+                            for (int tow_key_func=0; tow_key_func<fs.size_two_ctrl; tow_key_func++)
+                            {
+                                for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                                {
+                                    if (strcmp(fs.tow_key_name_ctrl[tow_key_func], button_list[key_end_code])==0)  // 获取键位码,快捷键与虚键码对应
+                                    {
+                                        if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                        {
+                                            if (strcmp(fs.tow_key_name_ctrl[tow_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                            {
+                                                fs.funcArray_two_key_ctrl[tow_key_func]();  // ctrl函数
+                                                return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        else if (key1_code == VK_MENU)  // 如果为alt
+                        {
+                            for (int tow_key_func=0; tow_key_func<fs.size_two_alt; tow_key_func++)
+                            {
+                                for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                                {
+                                    if (strcmp(fs.tow_key_name_alt[tow_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                    {
+                                        if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                        {
+                                            if (strcmp(fs.tow_key_name_alt[tow_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                            {
+                                                fs.funcArray_two_key_alt[tow_key_func]();
+                                                return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else if (key1_code==VK_SHIFT)  // 如果是shift
+                        {
+                            for (int tow_key_func=0; tow_key_func<fs.size_two_shift; tow_key_func++)
+                            {
+                                for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 按键码
+                                {
+                                    if (strcmp(fs.tow_key_name_shift[tow_key_func], button_list[key_end_code])==0)  // 获取键位码
+                                    {
+                                        if (pKey->vkCode == button_code_list[key_end_code])  // 如果虚键码相同
+                                        {
+                                            if (strcmp(fs.tow_key_name_shift[tow_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                            {
+                                                fs.funcArray_two_key_shift[tow_key_func]();
+                                                return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
             // 只按下一个快捷键
-            // 如果只注册两个快捷键
         else if (current->data.key1 != NULL && current->data.key2 == NULL && current->data.key3 == NULL && current->data.key4 == NULL)
         {
             for (int i = 0; i < button_list_len; i++)
@@ -1425,41 +1742,565 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
                     PKBDLLHOOKSTRUCT pKey = (PKBDLLHOOKSTRUCT)lParam;
 
                     if (wParam == WM_KEYDOWN &&
-                        pKey->vkCode == key1_code)                // 检查第三个键是否按下
+                        pKey->vkCode == key1_code)                // 检查第1个键是否按下
                     {
-                        // 执行相应的函数
-                        current->data.function();
-                        break;
+                        for (int one_key_func=0; one_key_func<fs.size_one; one_key_func++)  // 遍历数组函数
+                        {
+                            for (int key_end_code=0; key_end_code<button_list_len; key_end_code++)  // 先获取键位码，与按下的·按键比较
+                            {
+                                if (strcmp(fs.one_key_name[one_key_func], button_list[key_end_code])==0)  // 如果匹配
+                                {
+                                    if (pKey->vkCode == button_code_list[key_end_code])
+                                    {
+                                        if (strcmp(fs.one_key_name[one_key_func], button_list[key_end_code])==0)  // 获取按键的索引，索引对应的函数
+                                        {
+                                            fs.funcArray_one_key[one_key_func]();  // 回调函数
+                                            return CallNextHookEx(NULL, nCode, wParam, lParam);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
-
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
+
 
 // 添加快捷键的函数
 void AddHotKey(char *key1, char *key2, char *key3, char *key4, void (*target_void_func)())
 {
+    static int four_key_func_size_ctrl_alt_shift = 1;  // 四个快捷键
+    static int four_key_func_size_ctrl_shift_alt = 1;
+    static int four_key_func_size_alt_ctrl_shift = 1;
+    static int four_key_func_size_alt_shift_ctrl = 1;
+    static int four_key_func_size_shift_ctrl_alt = 1;
+    static int four_key_func_size_shift_alt_ctrl = 1;
+
+    static int three_key_func_size_ctrl_alt = 1;  // 三个快捷键
+    static int three_key_func_size_ctrl_shift = 1;
+    static int three_key_func_size_alt_ctrl = 1;
+    static int three_key_func_size_alt_shift = 1;
+    static int three_key_func_size_shift_ctrl = 1;
+    static int three_key_func_size_shift_alt = 1;
+
+    static int two_key_func_size_ctrl = 1;  // 双快捷键
+    static int two_key_func_size_alt = 1;
+    static int two_key_func_size_shift = 1;
+
+    static int one_key_func_size = 1;  // 单快捷键
+
+    // 注册四个快捷键
+    if (key1 !=NULL && key2 !=NULL && key3 !=NULL && key4 !=NULL)
+    {
+        if (strcmp(key1, "ctrl")==0 && strcmp(key2, "alt") ==0 && strcmp(key3, "shift") ==0)
+            // ctrl+alt+shift
+        {
+            if (four_key_func_size_ctrl_alt_shift ==1)
+            {  // 如果函数数组大小为1那么首次分配内存
+                fs.funcArray_four_key_ctrl_alt_shift = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_four_key_ctrl_alt_shift == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *four_keys_temp = (FunctionPtr *) realloc(fs.funcArray_four_key_ctrl_alt_shift, four_key_func_size_ctrl_alt_shift * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (four_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_four_key_ctrl_alt_shift);
+                    fs.funcArray_four_key_ctrl_alt_shift = NULL;
+                    return;
+                }
+                fs.funcArray_four_key_ctrl_alt_shift = four_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_four_key_ctrl_alt_shift[four_key_func_size_ctrl_alt_shift-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_four_key_ctrl_alt_shift = four_key_func_size_ctrl_alt_shift;
+            fs.four_key_name_ctrl_alt_shift[four_key_func_size_ctrl_alt_shift-1] = key4;  // 给每个数组元素加上对应的按键(最后一个按键确认调用的哪个函数)
+            four_key_func_size_ctrl_alt_shift++;  // 每次完成以后自增
+        }
+
+            // ctrl+shift_alt
+        else if (strcmp(key1, "ctrl")==0 && strcmp(key2, "shift") ==0 && strcmp(key3, "alt") ==0)
+        {
+            if (four_key_func_size_ctrl_shift_alt ==1)
+            {  // 如果函数数组大小为1那么首次分配内存
+                fs.funcArray_four_key_ctrl_shift_alt = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_four_key_ctrl_shift_alt == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *four_keys_temp = (FunctionPtr *) realloc(fs.funcArray_four_key_ctrl_shift_alt, four_key_func_size_ctrl_shift_alt * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (four_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_four_key_ctrl_shift_alt);
+                    fs.funcArray_four_key_ctrl_shift_alt = NULL;
+                    return;
+                }
+                fs.funcArray_four_key_ctrl_shift_alt = four_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_four_key_ctrl_shift_alt[four_key_func_size_ctrl_shift_alt-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_four_key_ctrl_shift_alt = four_key_func_size_ctrl_shift_alt;
+            fs.four_key_name_ctrl_shift_alt[four_key_func_size_ctrl_shift_alt-1] = key4;  // 给每个数组元素加上对应的按键(最后一个按键确认调用的哪个函数)
+            four_key_func_size_ctrl_shift_alt++;  // 每次完成以后自增
+        }
+
+            // alt+ctrl+shift
+        else if (strcmp(key1, "alt")==0 && strcmp(key2, "ctrl") ==0 && strcmp(key3, "shift") ==0)
+        {
+            if (four_key_func_size_alt_ctrl_shift ==1)
+            {  // 如果函数数组大小为1那么首次分配内存
+                fs.funcArray_four_key_alt_ctrl_shift = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_four_key_alt_ctrl_shift == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *four_keys_temp = (FunctionPtr *) realloc(fs.funcArray_four_key_alt_ctrl_shift, four_key_func_size_alt_ctrl_shift * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (four_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_four_key_alt_ctrl_shift);
+                    fs.funcArray_four_key_alt_ctrl_shift = NULL;
+                    return;
+                }
+                fs.funcArray_four_key_alt_ctrl_shift = four_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_four_key_alt_ctrl_shift[four_key_func_size_alt_ctrl_shift-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_four_key_alt_ctrl_shift = four_key_func_size_alt_ctrl_shift;
+            fs.four_key_name_alt_ctrl_shift[four_key_func_size_alt_ctrl_shift-1] = key4;  // 给每个数组元素加上对应的按键(最后一个按键确认调用的哪个函数)
+            four_key_func_size_alt_ctrl_shift++;  // 每次完成以后自增
+        }
+
+            // alt_shift_ctrl
+        else if (strcmp(key1, "alt")==0 && strcmp(key2, "shift") ==0 && strcmp(key3, "ctrl") ==0)
+        {
+            if (four_key_func_size_alt_shift_ctrl ==1)
+            {  // 如果函数数组大小为1那么首次分配内存
+                fs.funcArray_four_key_alt_shift_ctrl = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_four_key_alt_shift_ctrl == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *four_keys_temp = (FunctionPtr *) realloc(fs.funcArray_four_key_alt_shift_ctrl, four_key_func_size_alt_shift_ctrl * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (four_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_four_key_alt_shift_ctrl);
+                    fs.funcArray_four_key_alt_shift_ctrl = NULL;
+                    return;
+                }
+                fs.funcArray_four_key_alt_shift_ctrl = four_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_four_key_alt_shift_ctrl[four_key_func_size_alt_shift_ctrl-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_four_key_alt_shift_ctrl = four_key_func_size_alt_shift_ctrl;
+            fs.four_key_name_alt_shift_ctrl[four_key_func_size_alt_shift_ctrl-1] = key4;  // 给每个数组元素加上对应的按键(最后一个按键确认调用的哪个函数)
+            four_key_func_size_alt_shift_ctrl++;  // 每次完成以后自增
+        }
+
+            // shift ctrl alt
+        else if (strcmp(key1, "shift")==0 && strcmp(key2, "ctrl") ==0 && strcmp(key3, "alt") ==0)
+        {
+            if (four_key_func_size_shift_ctrl_alt ==1)
+            {  // 如果函数数组大小为1那么首次分配内存
+                fs.funcArray_four_key_shift_ctrl_alt = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_four_key_shift_ctrl_alt == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *four_keys_temp = (FunctionPtr *) realloc(fs.funcArray_four_key_shift_ctrl_alt, four_key_func_size_shift_ctrl_alt * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (four_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_four_key_shift_ctrl_alt);
+                    fs.funcArray_four_key_shift_ctrl_alt = NULL;
+                    return;
+                }
+                fs.funcArray_four_key_shift_ctrl_alt = four_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_four_key_shift_ctrl_alt[four_key_func_size_shift_ctrl_alt-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_four_key_shift_ctrl_alt = four_key_func_size_shift_ctrl_alt;
+            fs.four_key_name_shift_ctrl_alt[four_key_func_size_shift_ctrl_alt-1] = key4;  // 给每个数组元素加上对应的按键(最后一个按键确认调用的哪个函数)
+            four_key_func_size_shift_ctrl_alt++;  // 每次完成以后自增
+        }
+
+            // shift alt ctrl
+        else if (strcmp(key1, "shift")==0 && strcmp(key2, "alt") ==0 && strcmp(key3, "ctrl") ==0)
+        {
+            if (four_key_func_size_shift_alt_ctrl ==1)
+            {  // 如果函数数组大小为1那么首次分配内存
+                fs.funcArray_four_key_shift_alt_ctrl = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_four_key_shift_alt_ctrl == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *four_keys_temp = (FunctionPtr *) realloc(fs.funcArray_four_key_shift_alt_ctrl, four_key_func_size_shift_alt_ctrl * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (four_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_four_key_shift_alt_ctrl);
+                    fs.funcArray_four_key_shift_alt_ctrl = NULL;
+                    return;
+                }
+                fs.funcArray_four_key_shift_alt_ctrl = four_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_four_key_shift_alt_ctrl[four_key_func_size_shift_alt_ctrl-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_four_key_shift_alt_ctrl = four_key_func_size_shift_alt_ctrl;
+            fs.four_key_name_shift_alt_ctrl[four_key_func_size_shift_alt_ctrl-1] = key4;  // 给每个数组元素加上对应的按键(最后一个按键确认调用的哪个函数)
+            four_key_func_size_shift_alt_ctrl++;  // 每次完成以后自增
+        }
+    }
+
+        // 三快捷键 //
+    else if(key1 !=NULL && key2 !=NULL && key3 !=NULL && key4 ==NULL)
+    {
+        // ctrl+alt //
+        if (strcmp(key1, "ctrl")==0 && strcmp(key2, "alt")==0)  // 如果是ctrl+alt+key
+        {
+            if (three_key_func_size_ctrl_alt ==1)
+            {
+                fs.funcArray_three_key_ctrl_alt = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_three_key_ctrl_alt == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *three_keys_temp = (FunctionPtr *) realloc(fs.funcArray_three_key_ctrl_alt, three_key_func_size_ctrl_alt * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (three_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_three_key_ctrl_alt);
+                    fs.funcArray_three_key_ctrl_alt = NULL;
+                    return;
+                }
+                fs.funcArray_three_key_ctrl_alt = three_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_three_key_ctrl_alt[three_key_func_size_ctrl_alt-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_three_ctrl_alt = three_key_func_size_ctrl_alt;  // 设置数组大小
+            fs.three_key_name_ctrl_alt[three_key_func_size_ctrl_alt-1] = key3;  // 设置第三个快捷键
+            three_key_func_size_ctrl_alt++;  // 每次完成以后自增
+        }
+            // ctrl+shift //
+        else if (strcmp(key1, "ctrl")==0 && strcmp(key2, "shift")==0)
+        {
+            if (three_key_func_size_ctrl_shift ==1)
+            {
+                fs.funcArray_three_key_ctrl_shift = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_three_key_ctrl_shift == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *three_keys_temp = (FunctionPtr *) realloc(fs.funcArray_three_key_ctrl_shift, three_key_func_size_ctrl_shift * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (three_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_three_key_ctrl_shift);
+                    fs.funcArray_three_key_ctrl_shift = NULL;
+                    return;
+                }
+                fs.funcArray_three_key_ctrl_shift = three_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_three_key_ctrl_shift[three_key_func_size_ctrl_shift-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_three_ctrl_shift = three_key_func_size_ctrl_shift;  // 传入大小
+            fs.three_key_name_ctrl_shift[three_key_func_size_ctrl_shift-1] = key3;  // 传入按键
+            three_key_func_size_ctrl_shift++;  // 每次完成以后自增
+        }
+
+            // alt+ctrl //
+        else if (strcmp(key1, "alt")==0 && strcmp(key2, "shift")==0)
+        {
+            if (three_key_func_size_alt_ctrl ==1)
+            {
+                fs.funcArray_three_key_alt_ctrl = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_three_key_alt_ctrl == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *three_keys_temp = (FunctionPtr *) realloc(fs.funcArray_three_key_alt_ctrl, three_key_func_size_alt_ctrl * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (three_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_three_key_alt_ctrl);
+                    fs.funcArray_three_key_alt_ctrl = NULL;
+                    return;
+                }
+                fs.funcArray_three_key_alt_ctrl = three_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_three_key_alt_ctrl[three_key_func_size_alt_ctrl-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_three_alt_ctrl = three_key_func_size_alt_ctrl;  // 设置大小
+            fs.three_key_name_alt_ctrl[three_key_func_size_alt_ctrl-1] = key3;  // 这种最后一个案件
+            three_key_func_size_alt_ctrl++;  // 每次完成以后自增
+        }
+            // alt+shift  //
+        else if (strcmp(key1, "alt")==0 && strcmp(key2, "shift")==0)
+        {
+            if (three_key_func_size_alt_shift ==1)
+            {
+                fs.funcArray_three_key_alt_shift = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_three_key_alt_shift == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *three_keys_temp = (FunctionPtr *) realloc(fs.funcArray_three_key_alt_shift, three_key_func_size_alt_shift * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (three_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_three_key_alt_shift);
+                    fs.funcArray_three_key_alt_shift = NULL;
+                    return;
+                }
+                fs.funcArray_three_key_alt_shift = three_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_three_key_alt_shift[three_key_func_size_alt_shift-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_three_alt_shift = three_key_func_size_alt_shift;
+            fs.three_key_name_alt_shift[three_key_func_size_alt_shift-1] = key3;
+            three_key_func_size_alt_shift++;  // 每次完成以后自增
+        }
+
+            // shift_ctrl //
+        else if (strcmp(key1, "shift")==0 && strcmp(key2, "ctrl")==0)
+        {
+            if (three_key_func_size_shift_ctrl ==1)
+            {
+                fs.funcArray_three_key_shift_ctrl = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_three_key_shift_ctrl == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *three_keys_temp = (FunctionPtr *) realloc(fs.funcArray_three_key_shift_ctrl, three_key_func_size_shift_ctrl * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (three_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_three_key_shift_ctrl);
+                    fs.funcArray_three_key_shift_ctrl = NULL;
+                    return;
+                }
+                fs.funcArray_three_key_shift_ctrl = three_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_three_key_shift_ctrl[three_key_func_size_shift_ctrl-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_three_shift_ctrl = three_key_func_size_shift_ctrl;
+            fs.three_key_name_shift_ctrl[three_key_func_size_shift_ctrl-1] = key3;
+
+            three_key_func_size_shift_ctrl++;  // 每次完成以后自增
+        }
+            // shift+alt //
+        else if (strcmp(key1, "shift")==0 && strcmp(key2, "alt")==0)
+        {
+            if (three_key_func_size_shift_alt ==1)
+            {
+                fs.funcArray_three_key_shift_alt = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+                if (fs.funcArray_three_key_shift_alt == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            }
+            else
+            {
+                FunctionPtr *three_keys_temp = (FunctionPtr *) realloc(fs.funcArray_three_key_shift_alt, three_key_func_size_shift_alt * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (three_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_three_key_shift_alt);
+                    fs.funcArray_three_key_shift_alt = NULL;
+                    return;
+                }
+                fs.funcArray_three_key_shift_alt = three_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_three_key_shift_alt[three_key_func_size_shift_alt-1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_three_shift_alt = three_key_func_size_shift_alt;
+            fs.three_key_name_shift_alt[three_key_func_size_shift_alt-1] = key3;
+            three_key_func_size_shift_alt++;  // 每次完成以后自增
+        }
+    }
+
+
+        // 两个快捷键
+    else if(key1 !=NULL && key2 !=NULL && key3 ==NULL && key4 ==NULL)
+    {
+        if (strcmp(key1, "ctrl")==0)
+        {
+            if (two_key_func_size_ctrl == 1)
+            {
+                fs.funcArray_two_key_ctrl = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));  // 可用改为two_key_func_size，但是没必要了
+                if (fs.funcArray_two_key_ctrl == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            } else {
+                FunctionPtr *two_keys_temp = (FunctionPtr *) realloc(fs.funcArray_two_key_ctrl,two_key_func_size_ctrl * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (two_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_two_key_ctrl);
+                    fs.funcArray_two_key_ctrl = NULL;
+                    return;
+                }
+                fs.funcArray_two_key_ctrl = two_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_two_key_ctrl[two_key_func_size_ctrl - 1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_two_ctrl = two_key_func_size_ctrl;  // 传递数组大小
+            fs.tow_key_name_ctrl[two_key_func_size_ctrl-1] = key2;  // 将按键传入结构体名字数组
+            two_key_func_size_ctrl++;  // 每次完成以后自增
+        }
+            // 如果是alt开头
+        else if (strcmp(key1, "alt")==0)
+        {
+            if (two_key_func_size_alt == 1) {
+                fs.funcArray_two_key_alt = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));  // 可用改为two_key_func_size，但是没必要了
+                if (fs.funcArray_two_key_alt == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            } else
+            {
+                FunctionPtr *two_keys_temp = (FunctionPtr *) realloc(fs.funcArray_two_key_alt,two_key_func_size_alt * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (two_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_two_key_alt);
+                    fs.funcArray_two_key_alt = NULL;
+                    return;
+                }
+                fs.funcArray_two_key_alt = two_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_two_key_alt[two_key_func_size_alt - 1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_two_alt = two_key_func_size_alt;  // 传递数组大小
+            fs.tow_key_name_alt[two_key_func_size_alt-1] = key2;
+            two_key_func_size_alt++;  // 每次完成以后自增
+        }
+
+            // shift开头 //
+        else if (strcmp(key1, "shift")==0)
+        {
+            if (two_key_func_size_shift == 1) {
+                fs.funcArray_two_key_shift = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));  // 可用改为two_key_func_size，但是没必要了
+                if (fs.funcArray_two_key_shift == NULL) {
+                    printf("内存分配失败\n");
+                    return;
+                }
+            } else
+            {
+                FunctionPtr *two_keys_temp = (FunctionPtr *) realloc(fs.funcArray_two_key_shift,two_key_func_size_shift * sizeof(FunctionPtr));
+                // 如果分配失败
+                if (two_keys_temp == NULL) {
+                    printf("分配内存失败,快捷键4");
+                    // 保存原始指针以便释放
+                    free(fs.funcArray_two_key_shift);
+                    fs.funcArray_two_key_shift = NULL;
+                    return;
+                }
+                fs.funcArray_two_key_shift = two_keys_temp; // 重新分配成功后更新指针
+            }
+            fs.funcArray_two_key_shift[two_key_func_size_shift - 1] = target_void_func;  // -1是因为数组索引从0开始
+            fs.size_two_shift = two_key_func_size_shift;  // 传递数组大小
+            fs.tow_key_name_shift[two_key_func_size_shift-1] = key2;
+            two_key_func_size_shift++;  // 每次完成以后自增
+        }
+    }
+
+        // 单个快捷键 //
+    else if (key1 != NULL && key2 == NULL && key3 == NULL && key4 == NULL)
+    {
+        if (one_key_func_size == 1)
+        {
+            fs.funcArray_one_key = (FunctionPtr *) malloc(3 * sizeof(FunctionPtr));
+            if (fs.funcArray_one_key == NULL) {
+                printf("内存分配失败\n");
+                return;
+            }
+        }
+        else
+        {
+            FunctionPtr *one_keys_temp = (FunctionPtr *) realloc(fs.funcArray_one_key, one_key_func_size * sizeof(FunctionPtr));
+            if (one_keys_temp == NULL) {
+                printf("分配内存失败,快捷键1");
+                free(fs.funcArray_one_key); // 释放原始内存
+                fs.funcArray_one_key = NULL;
+                return;
+            }
+            fs.funcArray_one_key = one_keys_temp; // 更新指针
+        }
+        // 确保使用更新后的 one_key_func_size
+        fs.funcArray_one_key[one_key_func_size - 1] = target_void_func;
+        fs.size_one = one_key_func_size;
+        fs.one_key_name[one_key_func_size-1] = key1;
+        one_key_func_size++; // 更新函数数量
+    }
+
+    // 快捷键注册部分
     HotKeyList *newNode = (HotKeyList *)malloc(sizeof(HotKeyList));  // 分配内存
+    if (!newNode)
+    {
+        printf("内存分配失败\n");
+        return;
+    }
     newNode->data.key1 = key1;  // 设置快捷键
     newNode->data.key2 = key2;
     newNode->data.key3 = key3;
     newNode->data.key4 = key4;
-    newNode->data.function = target_void_func;  // 设置回调函数
+//    newNode->data.function = target_void_func;  // 设置回调函数
 
     // newNode->next = head; 和 head = newNode; 是用来将新创建的节点 newNode 插入到链表中的头部，并更新链表的头部指针。
     newNode->next = head;  // 设置链表连接,将新节点的 next 指针指向当前链表的头部节点而原先链表的头部节点将成为第二个节点。
     head = newNode;  // 更新头指针,通过将 head 设置为 newNode，新节点成为了链表的新头部，也就是链表的第一个元素
     // 示例:node1 -> node2 -> NULL
+
+
+
 }
 
 void freeHotKeys()
 {
     HotKeyList *current = head;
     HotKeyList *temp;
-
     // 遍历链表并释放每个节点的内存
     while (current != NULL)
     {
@@ -1469,6 +2310,7 @@ void freeHotKeys()
     }
 
     head = NULL;  // 清空头部指针
+
 }
 
 // 注册一个键盘低级钩子
@@ -1496,12 +2338,122 @@ void ReleaseKey(WORD vkCode, bool *keyUpFlag)
     input.ki.wVk = vkCode;  // 键位吗码
     if (!*keyUpFlag)  // 如果被按下结构体返回true反之返回False
     {
-        printf("ok");
         // 如果之前按键被按下了，现在需要释放
         input.ki.dwFlags = KEYEVENTF_KEYUP;
         SendInput(1, &input, sizeof(INPUT));
         *keyUpFlag = true; // 更新标志，表示按键已释放
-        printf("%d", vkCode);
+    }
+}
+
+void free_funcs()
+{
+    /**** 四个快捷键 ****/
+    // 释放函数分配的内存
+
+    // ctrl //
+    if (fs.funcArray_four_key_ctrl_alt_shift !=NULL)  // 如果没有分配内存失败，释放内存
+    {
+        free(fs.funcArray_four_key_ctrl_alt_shift);
+        fs.funcArray_four_key_ctrl_alt_shift = NULL;
+    }
+    if (fs.funcArray_four_key_ctrl_shift_alt !=NULL)  // 如果没有分配内存失败，释放内存
+    {
+        free(fs.funcArray_four_key_ctrl_shift_alt);
+        fs.funcArray_four_key_ctrl_shift_alt = NULL;
+    }
+
+    // alt //
+    if (fs.funcArray_four_key_alt_ctrl_shift !=NULL)  // 如果没有分配内存失败，释放内存
+    {
+        free(fs.funcArray_four_key_alt_ctrl_shift);
+        fs.funcArray_four_key_alt_ctrl_shift = NULL;
+    }
+    if (fs.funcArray_four_key_alt_shift_ctrl !=NULL)  // 如果没有分配内存失败，释放内存
+    {
+        free(fs.funcArray_four_key_alt_shift_ctrl);
+        fs.funcArray_four_key_alt_shift_ctrl = NULL;
+    }
+
+    // shift //
+    if (fs.funcArray_four_key_shift_ctrl_alt !=NULL)  // 如果没有分配内存失败，释放内存
+    {
+        free(fs.funcArray_four_key_shift_ctrl_alt);
+        fs.funcArray_four_key_shift_ctrl_alt = NULL;
+    }
+    if (fs.funcArray_four_key_shift_alt_ctrl !=NULL)  // 如果没有分配内存失败，释放内存
+    {
+        free(fs.funcArray_four_key_shift_alt_ctrl);
+        fs.funcArray_four_key_shift_alt_ctrl = NULL;
+    }
+
+
+/************** 三个快捷键 ***************/
+    // ctrl
+    if (fs.funcArray_three_key_ctrl_alt !=NULL)
+    {
+        free(fs.funcArray_three_key_ctrl_alt);
+        fs.funcArray_three_key_ctrl_alt = NULL;
+    }
+
+    if (fs.funcArray_three_key_ctrl_shift !=NULL)
+    {
+        free(fs.funcArray_three_key_ctrl_shift);
+        fs.funcArray_three_key_ctrl_shift = NULL;
+    }
+
+    // alt
+    if (fs.funcArray_three_key_alt_ctrl !=NULL)
+    {
+        free(fs.funcArray_three_key_alt_ctrl);
+        fs.funcArray_three_key_alt_ctrl = NULL;
+    }
+    if (fs.funcArray_three_key_alt_shift !=NULL)
+    {
+        free(fs.funcArray_three_key_alt_shift);
+        fs.funcArray_three_key_alt_shift = NULL;
+    }
+
+    // shift
+    if (fs.funcArray_three_key_shift_ctrl !=NULL)
+    {
+        free(fs.funcArray_three_key_shift_ctrl);
+        fs.funcArray_three_key_shift_ctrl = NULL;
+    }
+    if (fs.funcArray_three_key_shift_alt !=NULL)
+    {
+        free(fs.funcArray_three_key_shift_alt);
+        fs.funcArray_three_key_shift_alt = NULL;
+    }
+
+
+
+
+
+/////////////////////
+    // 两个快捷键
+    if (fs.funcArray_two_key_ctrl !=NULL)  // ctrl
+    {
+        free(fs.funcArray_two_key_ctrl);
+        fs.funcArray_two_key_ctrl = NULL;
+    }
+    if (fs.funcArray_two_key_alt !=NULL)  //alt
+    {
+        free(fs.funcArray_two_key_alt);
+        fs.funcArray_two_key_alt = NULL;
+    }
+
+    if (fs.funcArray_two_key_shift !=NULL)  //shift
+    {
+        free(fs.funcArray_two_key_shift);
+        fs.funcArray_two_key_shift = NULL;
+    }
+
+///////////////////////////
+    // 1快捷键
+    if (fs.funcArray_one_key !=NULL)
+    {
+        free(fs.funcArray_one_key);
+        fs.funcArray_one_key = NULL;
     }
 }
 
@@ -1549,6 +2501,7 @@ void cleanup_check() {
             SendInput(1, &input, sizeof(INPUT));
             flag_up.mouse_up = true; // 更新鼠标抬起标志
         }
+        free_funcs();
     }
 
     // 确保钩子被卸载
@@ -1559,9 +2512,11 @@ void cleanup_check() {
         // 发送程序结束消息
         PostQuitMessage(0);
         freeHotKeys();  // 释放内存
+        free_funcs();  // 释放函数数组内存
     }
 
 }
+
 
 /************** 清理部分 ********************/
 void ClearHotKey()  // 注销快捷键(自动注销快捷键调用释放内存的函数)
@@ -1572,6 +2527,8 @@ void ClearHotKey()  // 注销快捷键(自动注销快捷键调用释放内存的函数)
     PostQuitMessage(0);
     freeHotKeys();  // 释放内存
     cleanup_check();  // 最后检查是否释放所有按键
+    free_funcs();  // 释放分配的函数内存
+
 }
 
 // 信号处理函数，用于处理 SIGINT 信号
@@ -1588,5 +2545,4 @@ void exit_check_work()  // 检查程序退出后执行的任务
     // 设置 SIGINT 信号的处理函数，信号通报
     signal(SIGINT, handle_sigint);
 }
-
 

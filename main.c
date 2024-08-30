@@ -2,21 +2,44 @@
 #include "include/keyboard_main.h"
 #include <stdbool.h>
 #include <pthread.h>
+#include <unistd.h>
+
+
+bool start = true;
+int i=0;
+
+void run()
+{
+    i = 0;
+    while (start)
+    {
+        PressHotKey("ctrl", "v", NULL);  // 按下快捷键复制
+        usleep(50000);
+        PressKey("enter");  // 按下enter键发送
+        if (!start)
+        {
+            break;
+        }
+        i++;
+        if (i == 200)
+        {
+            break;
+        }
+    }
+}
+
+void exit_run()
+{
+    start = false;
+    ClearHotKey();
+}
 
 int main()
 {
-    MousePositionGet position =  GetMousePosition(false);  // 获取鼠标当前坐标并输出
-    printf("%ld:x, %ld:y", position.x, position.y);
-
-//    ScreenSizeGet screen =  GetScreenSIze(0);  // 输出坐标内容
-//    printf("%d:x, %d:y", screen.x, screen.y);
-
-//    AddHotKey("ctrl", "l", NULL, NULL, ClearHotKey);  // 注册快捷键，第五个参数为回调函数
-//    AddHotKey("esc", NULL, NULL, NULL, ClearHotKey);  // 可注册多个快捷键
-//    ListenHotKEy();  // 监听快捷键  ClearHotKey在程序结束时必须调用用它来注销快捷键注册，比如ClearHotKey()
-
-//    PasteStrStructs str = PasteStr();  // 获取字符窜存入结构体
-//    printf("%s", str.text);  // 输出字符窜
-//    FreePasteStr(&str);  // 释放内存
+    exit_check_work();  // 退出监测，意外退出自动清理
+    CopyStr("测试");  // 复制内容到剪切板
+    AddHotKey("k", NULL, NULL, NULL, exit_run);  // 添加快捷键
+    AddHotKey("space", NULL, NULL, NULL, run);
+    ListenHotKEy();
     return 0;
 }
