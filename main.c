@@ -1,45 +1,60 @@
 #include <stdio.h>
 #include "include/keyboard_main.h"
-#include <stdbool.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <unistd.h>
+#define True 1
+#define False 0
+
+bool run = true;
+
+int i = 0;
+int end = 1000;
+pthread_t T1;
 
 
-bool start = true;
-int i=0;
-
-void run()
+void *start_run(void *argc)
 {
-    i = 0;
-    while (start)
+    const char *lists[] = {"稍微", "有那么一点点", "卡.....", "呃", "我擦！"};
+    while (run)
     {
-        PressHotKey("ctrl", "v", NULL);  // 按下快捷键复制
-        usleep(50000);
-        PressKey("enter");  // 按下enter键发送
-        if (!start)
+        for (i; i < 4; i++)
         {
-            break;
+            CopyStr(lists[i]);
+            usleep(5000);
+            PressHotKey("ctrl", "v", NULL);
+            usleep(5000);
+            PressKey("enter");
+            if (!run) {
+                break;
+            }
         }
-        i++;
-        if (i == 200)
-        {
-            break;
-        }
+        i = 0;
     }
 }
 
-void exit_run()
+void start_send_t()
 {
-    start = false;
+    pthread_create(&T1, NULL, start_run, NULL);
+}
+
+void end_run()
+{
+    run = false;
     ClearHotKey();
 }
 
+
+
 int main()
 {
-    exit_check_work();  // 退出监测，意外退出自动清理
-    CopyStr("测试");  // 复制内容到剪切板
-    AddHotKey("k", NULL, NULL, NULL, exit_run);  // 添加快捷键
-    AddHotKey("space", NULL, NULL, NULL, run);
+    exit_check_work();
+    AddHotKey("space", NULL, NULL, NULL, start_send_t);
+    AddHotKey("1", NULL, NULL, NULL, end_run);
     ListenHotKEy();
+    KeyUp("ctrl");
+    KeyUp("v");
+    KeyUp("enter");
+    printf("break\n");
     return 0;
 }

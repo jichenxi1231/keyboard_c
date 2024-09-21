@@ -8,6 +8,43 @@
 #include <signal.h> // For signal()
 
 
+
+/*********** 虚键码对照表 Virtual key code mapping table **************/
+const char *alphabet_list[] = {"a", "b", "c", "d", "e", "f", "g",
+                               "h", "i", "j", "k", "l", "m",
+                               "n", "o", "p", "q", "r", "s",
+                               "t", "u", "v", "w", "x", "y", "z"  // 26字母
+        ,"0", "1", "2", "3", "4", "5", "6"
+        , "7", "8", "9"};  // 按键列  // 字母列表
+
+
+const char *function_keys_list [] = {"ctrl", "alt", "shift", "F1", "F2", "F3", "F4", "F5",
+                                     "F6", "F7", "F8", "F9", "F10", "F11", "F12", "esc",
+                                     "space", "delete", "tab", "enter", "caps", "clear",
+                                     "backspace", "win", "Pause", "page up", "page down", "left arrow",
+                                     "right arrow", "down arrow", "up arrow", "insert"};
+
+
+
+/****************************虚键码列表********************************/
+int alphabet_code[] = {65, 66, 67, 68, 69, 70,
+                       71, 72, 73, 74, 75, 76,
+                       77, 78, 79, 80, 81, 82,
+                       83, 84, 85, 86, 87, 88,
+                       89, 90, 48, 49, 50, 51,  // 48 以后是数组
+                       52, 53, 54, 55, 56, 57};  // 虚拟键码
+
+int function_code[] = {VK_CONTROL, VK_MENU, VK_SHIFT, VK_F1, VK_F2, VK_F3,
+                       VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10,
+                       VK_F11, VK_F12, VK_ESCAPE, VK_SPACE, VK_DELETE, VK_TAB,
+                       VK_RETURN, VK_CAPITAL, VK_CLEAR, VK_BACK, VK_LWIN, VK_PAUSE,
+                       VK_PRIOR, VK_NEXT, VK_LEFT, VK_RIGHT, VK_DOWN, VK_UP, VK_INSERT
+};
+
+/**************** 功能区 *******************/
+
+
+
 void MouseMoveTo(int x, int y)
 {
     SetCursorPos(x, y);  // 移动鼠标到某处(设置光标位置)
@@ -23,8 +60,6 @@ void MouseDown(char *button)
         input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;  // 设定鼠标事件为左键按下
         SendInput(1, &input, sizeof(INPUT));  // 使用SendInput函数发送鼠标事件
         // 设置鼠标被按下
-        flag_up.mouse_up = false;  // 鼠标按下为mouse_up = false
-        flag_up.mouse_name = "left";  // 存放按键名称如果程序结束没有是否就好自动释放
     }
     else if (strcmp(button, "right") ==0)
     {
@@ -34,8 +69,6 @@ void MouseDown(char *button)
         input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;  // 设定鼠标事件为左键按下
         SendInput(1, &input, sizeof(INPUT));  // 使用SendInput函数发送鼠标事件
         // 设置鼠标被按下
-        flag_up.mouse_up = false;  // 鼠标按下为mouse_up = false
-        flag_up.mouse_name = "right";  // 存放按键名称如果程序结束没有是否就好自动释放
     }
 }
 
@@ -47,16 +80,13 @@ void MouseUp(char *button)
         input.type = INPUT_MOUSE;
         input.mi.dwFlags = MOUSEEVENTF_LEFTUP; // 假设是左键，根据需要调整
         SendInput(1, &input, sizeof(INPUT));
-        flag_up.mouse_up = true; // 更新鼠标抬起标志
     }
     else if (strcmp(button, "right")==0)
     {
         INPUT input = {0};
         input.type = INPUT_MOUSE;
         input.mi.dwFlags = MOUSEEVENTF_RIGHTUP; // 假设是左键，根据需要调整
-        SendInput(1, &input, sizeof(INPUT));
-        flag_up.mouse_up = true; // 更新鼠标抬起标志
-    }
+        SendInput(1, &input, sizeof(INPUT));}
 }
 
 /*********************************************************************************/
@@ -75,13 +105,9 @@ void MouseClick(int x, int y, int clicks, char button[])
             input.type = INPUT_MOUSE;  // 指定输入事件类型为鼠标事件
             input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;  // 设定鼠标事件为左键按下
             SendInput(1, &input, sizeof(INPUT));  // 使用SendInput函数发送鼠标事件
-            flag_up.mouse_up = false;  // 鼠标按下为mouse_up = false
-            flag_up.mouse_name = "left";  // 存放按键名称如果程序结束没有是否就好自动释放
 
             input.mi.dwFlags = MOUSEEVENTF_LEFTUP;  // 设定鼠标事件为左键释放
             SendInput(1, &input, sizeof(INPUT));  // 发送释放鼠标左键事件
-            flag_up.mouse_up = true;  // 鼠标按下为mouse_up = true;  // 鼠标升起为true
-            flag_up.mouse_name = NULL;  // 释放了设置为0
             click_time++;
         }
 
@@ -91,14 +117,10 @@ void MouseClick(int x, int y, int clicks, char button[])
             input.type = INPUT_MOUSE;  // 指定输入事件类型为鼠标事件
             input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;  // 设定鼠标事件为左键按下
             SendInput(1, &input, sizeof(INPUT));  // 使用SendInput函数发送鼠标事件
-            flag_up.mouse_up = false;  // 鼠标按下为false
-            flag_up.mouse_name = "right";  // 鼠标按下，记录按下的按键
 
 
             input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;  // 设定鼠标事件为右键释放
             SendInput(1, &input, sizeof(INPUT));  // 发送释放鼠标右键事件
-            flag_up.mouse_up = true;  // 鼠标按下为false
-            flag_up.mouse_name = NULL; // 按下后设置为0
             click_time++;  // 初始值增加
         }
     }
@@ -158,43 +180,52 @@ void MouseRoll(int move)
     SendInput(1, &input, sizeof(INPUT));
 }
 
-/******** 键盘按下 ********/
+
+/*************** 键盘按下 ****************/
+void key_down_record(int key_code)  // 记录键盘按下 (避免重复)
+{
+    int len = sizeof(free_keys.key_code) / sizeof(free_keys.key_code[0]);  // 检查按键数组大小
+    bool found = false;  // 标记是否找到按键码
+
+    // 遍历数组，检查按键码是否已经存在
+    for (int i = 0; i < len; i++)
+    {
+        if (free_keys.key_code[i] == key_code)
+        {
+            found = true;  // 找到按键码，设置标记为true
+            break;
+        }
+    }
+
+    // 如果没有找到按键码，添加到数组的第一个空位置
+    if (!found)  // 如果没找到 就重新遍历数组 寻找值为0的位置 将虚键码赋值在上面
+    {
+        for (int i = 0; i < len; i++)
+        {
+            if (free_keys.key_code[i] == 0)  // 找到数组的第一个空位置 (找到数组为0的位置，将虚键码赋值到上面)
+            {
+                free_keys.key_code[i] = key_code;
+                break;
+            }
+        }
+    }
+}
+void key_up_record(int key_code)  // 记录键盘松开，清空按键
+{
+    int len = sizeof(free_keys.key_code) / sizeof(free_keys.key_code[0]);  // 检查释放键盘的数组大小
+    for (int i = 0; i < len; i++)
+    {
+        if (free_keys.key_code[i] == key_code)
+        {
+            free_keys.key_code[i] = 0;  // 清空按键码
+            break;
+        }
+    }
+}
+
+
 void KeyDown(char *key)
 {
-    // 修改一下标志，传参标志
-    /*************************** 按键列表 ***************************/
-    char *alphabet_list[] = {"a", "b", "c", "d", "e", "f", "g",
-                             "h", "i", "j", "k", "l", "m",
-                             "n", "o", "p", "q", "r", "s",
-                             "t", "u", "v", "w", "x", "y", "z"  // 26字母
-            ,"0", "1", "2", "3", "4", "5", "6"
-            , "7", "8", "9"};  // 按键列  // 字母列表
-
-
-    char *function_keys_list [] = {"ctrl", "alt", "shift", "F1", "F2", "F3", "F4", "F5",
-                                   "F6", "F7", "F8", "F9", "F10", "F11", "F12", "esc",
-                                   "space", "delete", "tab", "enter", "caps", "clear",
-                                   "backspace", "win", "Pause", "page up", "page down", "left arrow",
-                                   "right arrow", "down arrow", "up arrow", "insert"};
-
-
-
-/****************************虚键码列表********************************/
-    int alphabet_code[] = {65, 66, 67, 68, 69, 70,
-                           71, 72, 73, 74, 75, 76,
-                           77, 78, 79, 80, 81, 82,
-                           83, 84, 85, 86, 87, 88,
-                           89, 90, 48, 49, 50, 51,  // 48 以后是数组
-                           52, 53, 54, 55, 56, 57};  // 虚拟键码
-
-    int function_code[] = {VK_CONTROL, VK_MENU, VK_SHIFT, VK_F1, VK_F2, VK_F3,
-                           VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10,
-                           VK_F11, VK_F12, VK_ESCAPE, VK_SPACE, VK_DELETE, VK_TAB,
-                           VK_RETURN, VK_CAPITAL, VK_CLEAR, VK_BACK, VK_LWIN, VK_PAUSE,
-                           VK_PRIOR, VK_NEXT, VK_LEFT, VK_RIGHT, VK_DOWN, VK_UP, VK_INSERT
-    };
-
-
 /****************列表长度************************/
     int alphabet_list_len = sizeof (alphabet_list)/sizeof (alphabet_list[0]);  // 字母数字长度
     int function_keys_list_len = sizeof (function_keys_list)/sizeof (function_keys_list[0]);  // 功能键数组长度
@@ -216,8 +247,8 @@ void KeyDown(char *key)
             input.ki.wVk = alphabet_code[i]; // 指定模拟按下的键为 目标 键
             input.ki.dwFlags = 0; // 指定键盘按下事件，dwFlags 为 0
             SendInput(1, &input, sizeof(INPUT)); // 发送按键事件给系统
-            flag_up.key_up_1 = false;  // 单键键盘按下
-            flag_up.key_name = alphabet_code[i];
+
+            key_down_record(alphabet_code[i]);
             break;
         }
     }
@@ -238,8 +269,8 @@ void KeyDown(char *key)
             input.ki.wVk = function_code[i]; // 指定模拟按下的键为 目标 键
             input.ki.dwFlags = 0; // 指定键盘按下事件，dwFlags 为 0
             SendInput(1, &input, sizeof(INPUT)); // 发送按键事件给系统
-            flag_up.key_up_1 = true;  // 一个按键
-            flag_up.key_name = function_code[i];
+
+            key_down_record(function_code[i]);
             break;
         }
     }
@@ -248,40 +279,7 @@ void KeyDown(char *key)
 //////// 键盘释放 //////////
 void KeyUp(char *key)
 {
-    // 修改一下标志，传参标志
-    /*************************** 按键列表 ***************************/
-    char *alphabet_list[] = {"a", "b", "c", "d", "e", "f", "g",
-                             "h", "i", "j", "k", "l", "m",
-                             "n", "o", "p", "q", "r", "s",
-                             "t", "u", "v", "w", "x", "y", "z"  // 26字母
-            ,"0", "1", "2", "3", "4", "5", "6"
-            , "7", "8", "9"};  // 按键列  // 字母列表
-
-
-    char *function_keys_list [] = {"ctrl", "alt", "shift", "F1", "F2", "F3", "F4", "F5",
-                                   "F6", "F7", "F8", "F9", "F10", "F11", "F12", "esc",
-                                   "space", "delete", "tab", "enter", "caps", "clear",
-                                   "backspace", "win", "Pause", "page up", "page down", "left arrow",
-                                   "right arrow", "down arrow", "up arrow", "insert"};
-
-
-
-/****************************虚键码列表********************************/
-    int alphabet_code[] = {65, 66, 67, 68, 69, 70,
-                           71, 72, 73, 74, 75, 76,
-                           77, 78, 79, 80, 81, 82,
-                           83, 84, 85, 86, 87, 88,
-                           89, 90, 48, 49, 50, 51,  // 48 以后是数组
-                           52, 53, 54, 55, 56, 57};  // 虚拟键码
-
-    int function_code[] = {VK_CONTROL, VK_MENU, VK_SHIFT, VK_F1, VK_F2, VK_F3,
-                           VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10,
-                           VK_F11, VK_F12, VK_ESCAPE, VK_SPACE, VK_DELETE, VK_TAB,
-                           VK_RETURN, VK_CAPITAL, VK_CLEAR, VK_BACK, VK_LWIN, VK_PAUSE,
-                           VK_PRIOR, VK_NEXT, VK_LEFT, VK_RIGHT, VK_DOWN, VK_UP, VK_INSERT
-    };
-
-
+    int len = sizeof (free_keys.key_code)/sizeof (free_keys.key_code[0]);
 /****************列表长度************************/
     int alphabet_list_len = sizeof (alphabet_list)/sizeof (alphabet_list[0]);  // 字母数字长度
     int function_keys_list_len = sizeof (function_keys_list)/sizeof (function_keys_list[0]);  // 功能键数组长度
@@ -295,8 +293,8 @@ void KeyUp(char *key)
             // 如果之前按键被按下了，现在需要释放
             input.ki.dwFlags = KEYEVENTF_KEYUP;
             SendInput(1, &input, sizeof(INPUT));
-            flag_up.key_up_1 = true;  // 单键键盘按下
-            flag_up.key_name = 0;
+
+            key_up_record(alphabet_code[i]);
             break;
         }
     }
@@ -313,8 +311,8 @@ void KeyUp(char *key)
             // 如果之前按键被按下了，现在需要释放
             input.ki.dwFlags = KEYEVENTF_KEYUP;
             SendInput(1, &input, sizeof(INPUT));
-            flag_up.key_up_1 = true;  // 单键键盘按下
-            flag_up.key_name = 0;
+
+            key_up_record(function_code[i]);
             break;
         }
     }
@@ -333,10 +331,10 @@ void PressHotKey(char *key1, char *key2, char *key3)
     // 这里是查看两个数组，如果参数传入的与数组匹配就索引数组获得按键名称以及索引码
 
 
-    char *button_list[] = {"a", "b", "c", "d", "e", "f", "g",
-                           "h", "i", "j", "k", "l", "m",
-                           "n", "o", "p", "q", "r", "s",
-                           "t", "u", "v", "w", "x", "y", "z"  // 26字母
+    const char *button_list[] = {"a", "b", "c", "d", "e", "f", "g",
+                                 "h", "i", "j", "k", "l", "m",
+                                 "n", "o", "p", "q", "r", "s",
+                                 "t", "u", "v", "w", "x", "y", "z"  // 26字母
             ,"0", "1", "2", "3", "4", "5", "6"
             , "7", "8", "9"};  // 按键列
 
@@ -373,18 +371,12 @@ void PressHotKey(char *key1, char *key2, char *key3)
                     inputs[1].ki.dwFlags = 0; // 表示按下按键
                     // 发送输入，同时按下'ctrl'和'指定参数'键
                     SendInput(2, inputs, sizeof(INPUT));
-                    flag_up.key_up_2 = false;  // 键盘被按下两个快捷键
-                    flag_up.key_ctrl = false;  // 按下按键
-                    flag_up.key_name = button_code_list[i];  // 按键名称 ctrl+名字
 
 
                     // 模拟按键释放
                     inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                     inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                     SendInput(2, inputs, sizeof(INPUT));
-                    flag_up.key_up_2 = true;  // 键盘释放两个快捷键
-                    flag_up.key_ctrl = true;  // 键盘释放两个快捷键
-                    flag_up.key_name = 0;  // 按键名称改为0
                     break;  // break防止循环中多次点击快捷键
                 }
 
@@ -409,20 +401,11 @@ void PressHotKey(char *key1, char *key2, char *key3)
                         inputs[2].ki.dwFlags = 0; // 表示按下按键
                         // 发送输入，同时按下'ctrl，"alt',和'指定参数'键
                         SendInput(3, inputs, sizeof(INPUT));  // 按下
-                        flag_up.key_up_3 = false;  // 三个快捷键
-                        flag_up.key_ctrl = false;
-                        flag_up.key_alt = false;
-                        flag_up.key_name = button_code_list[i];  // 记录快捷键
 
                         inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[2].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         SendInput(3, inputs, sizeof(INPUT));
-                        flag_up.key_up_3 = true;  // 三个快捷键释放
-                        flag_up.key_ctrl = true;
-                        flag_up.key_alt = true;
-                        flag_up.key_name = 0;  // 清空记录的快捷键字母
-
                         break;
                     }
 
@@ -449,19 +432,11 @@ void PressHotKey(char *key1, char *key2, char *key3)
                         inputs[2].ki.dwFlags = 0; // 表示按下按键
                         // 发送输入，同时按下'ctrl，"shift',和'指定参数'键
                         SendInput(3, inputs, sizeof(INPUT));  // 按下
-                        flag_up.key_up_3 = false;  // 三个快捷键
-                        flag_up.key_ctrl = false;
-                        flag_up.key_shift = false;
-                        flag_up.key_name = button_code_list[i];  // 记录快捷键
 
                         inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[2].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         SendInput(3, inputs, sizeof(INPUT));
-                        flag_up.key_up_3 = true;  // 三个快捷键
-                        flag_up.key_ctrl = true;
-                        flag_up.key_shift = true;
-                        flag_up.key_name = 0;  // 记录快捷键
                         break;
                     }
 
@@ -488,21 +463,15 @@ void PressHotKey(char *key1, char *key2, char *key3)
                     inputs[1].type = INPUT_KEYBOARD;
                     inputs[1].ki.wVk = button_code_list[i]; // '传入参数'键的虚拟键码
                     inputs[1].ki.dwFlags = 0; // 表示按下按键
-
                     // 发送输入，同时按下'ctrl'和'指定参数'键
                     SendInput(2, inputs, sizeof(INPUT));
-                    flag_up.key_up_2 = false;  // 两个快捷键
-                    flag_up.key_alt = false;
-                    flag_up.key_name = button_code_list[i];
 
 
                     // 模拟按键释放
                     inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                     inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                     SendInput(2, inputs, sizeof(INPUT));
-                    flag_up.key_up_2 = true;
-                    flag_up.key_alt = true;
-                    flag_up.key_name = 0;
+
                     break;
                 }
 
@@ -527,19 +496,11 @@ void PressHotKey(char *key1, char *key2, char *key3)
                         inputs[2].ki.dwFlags = 0; // 表示按下按键
                         // 发送输入，同时按下'ctrl，"alt',和'指定参数'键
                         SendInput(3, inputs, sizeof(INPUT));  // 按下
-                        flag_up.key_up_3 = false;  // 三个快捷键
-                        flag_up.key_ctrl = false;
-                        flag_up.key_alt = false;
-                        flag_up.key_name = button_code_list[i];  // 记录快捷键
 
                         inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[2].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         SendInput(3, inputs, sizeof(INPUT));
-                        flag_up.key_up_3 = true;  // 三个快捷键释放
-                        flag_up.key_ctrl = true;
-                        flag_up.key_alt = true;
-                        flag_up.key_name = 0;  // 清空记录的快捷键字母
                         break;
                     }
 
@@ -566,19 +527,11 @@ void PressHotKey(char *key1, char *key2, char *key3)
                         inputs[2].ki.dwFlags = 0; // 表示按下按键
                         // 发送输入，同时按下'alt'，"shift',和'指定参数'键
                         SendInput(3, inputs, sizeof(INPUT));  // 按下
-                        flag_up.key_up_3 = false;  // 三个快捷键
-                        flag_up.key_shift = false;
-                        flag_up.key_alt = false;
-                        flag_up.key_name = button_code_list[i];  // 记录快捷键
 
                         inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[2].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         SendInput(3, inputs, sizeof(INPUT));
-                        flag_up.key_up_3 = true;  // 三个快捷键
-                        flag_up.key_shift = true;
-                        flag_up.key_alt = true;
-                        flag_up.key_name = 0;  // 记录快捷键
                         break;
                     }
                 }
@@ -607,17 +560,11 @@ void PressHotKey(char *key1, char *key2, char *key3)
 
                     // 发送输入，同时按下'shift'和'指定参数'键
                     SendInput(2, inputs, sizeof(INPUT));
-                    flag_up.key_up_2 = false;  // 两个快捷键
-                    flag_up.key_shift = false;
-                    flag_up.key_name = button_code_list[i];
 
                     // 模拟按键释放
                     inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                     inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                     SendInput(2, inputs, sizeof(INPUT));
-                    flag_up.key_up_2 = true;
-                    flag_up.key_shift = true;
-                    flag_up.key_name = 0;
                     break;
                 }
 
@@ -642,19 +589,10 @@ void PressHotKey(char *key1, char *key2, char *key3)
                         inputs[2].ki.dwFlags = 0; // 表示按下按键
                         // 发送输入，同时按下'ctrl，"alt',和'指定参数'键
                         SendInput(3, inputs, sizeof(INPUT));  // 按下
-                        flag_up.key_up_3 = false;  // 三个快捷键
-                        flag_up.key_ctrl = false;
-                        flag_up.key_shift = false;
-                        flag_up.key_name = button_code_list[i];  // 记录快捷键
-
                         inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[2].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         SendInput(3, inputs, sizeof(INPUT));
-                        flag_up.key_up_3 = true;  // 三个快捷键
-                        flag_up.key_ctrl = true;
-                        flag_up.key_shift = true;
-                        flag_up.key_name = 0;  // 记录快捷键
                         break;
                     }
                 }
@@ -680,19 +618,11 @@ void PressHotKey(char *key1, char *key2, char *key3)
                         inputs[2].ki.dwFlags = 0; // 表示按下按键
                         // 发送输入，同时按下'alt'，"shift',和'指定参数'键
                         SendInput(3, inputs, sizeof(INPUT));  // 按下
-                        flag_up.key_up_3 = false;  // 三个快捷键
-                        flag_up.key_shift = false;
-                        flag_up.key_alt = false;
-                        flag_up.key_name = button_code_list[i];  // 记录快捷键
 
                         inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         inputs[2].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                         SendInput(3, inputs, sizeof(INPUT));
-                        flag_up.key_up_3 = false;  // 三个快捷键
-                        flag_up.key_shift = false;
-                        flag_up.key_alt = false;
-                        flag_up.key_name = 0;  // 记录快捷键
                         break;
                     }
                 }
@@ -721,17 +651,10 @@ void PressHotKey(char *key1, char *key2, char *key3)
 
                     // 发送输入，同时按下'win'和'指定参数'键
                     SendInput(2, inputs, sizeof(INPUT));
-                    flag_up.key_up_2 = false;  // 键盘按下
-                    flag_up.key_win = false;  // Win键按下
-                    flag_up.key_name = button_code_list[i];
-
                     // 模拟按键释放
                     inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                     inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
                     SendInput(2, inputs, sizeof(INPUT));
-                    flag_up.key_up_2 = true;  // 键盘按下
-                    flag_up.key_win = true;  // Win键按下
-                    flag_up.key_name = 0;
                     break;
                 }
             }
@@ -769,47 +692,17 @@ void PressHotKey(char *key1, char *key2, char *key3)
 
 void PressKey(char *key) // 按键
 {
-    /*************************** 按键列表 ***************************/
-    char *alphabet_list[] = {"a", "b", "c", "d", "e", "f", "g",
-                             "h", "i", "j", "k", "l", "m",
-                             "n", "o", "p", "q", "r", "s",
-                             "t", "u", "v", "w", "x", "y", "z"  // 26字母
-            ,"0", "1", "2", "3", "4", "5", "6"
-            , "7", "8", "9"};  // 按键列  // 字母列表
+    const char *symbol_list_not_shift_press[] = {"`", "[", "]", "\\", ";", "''", ",", ".", "/",
+                                                 "-", "=", "，", "。", "’", "‘"};
 
+    const char *symbol_list_need_shift_press[] = {"~", "{", "}", "|", ":", "\"\"", "<", ">", "?",
+                                                  "_", "+","!", "@", "#", "$", "%", "^",
+                                                  "&", "*", "(",")"};
 
-    char *function_keys_list [] = {"ctrl", "alt", "shift", "F1", "F2", "F3", "F4", "F5",
-                                   "F6", "F7", "F8", "F9", "F10", "F11", "F12", "esc",
-                                   "space", "delete", "tab", "enter", "caps", "clear",
-                                   "backspace", "win", "Pause", "page up", "page down", "left arrow",
-                                   "right arrow", "down arrow", "up arrow", "insert"};
-
-
-    char *symbol_list_not_shift_press[] = {"`", "[", "]", "\\", ";", "''", ",", ".", "/",
-                                           "-", "=", "，", "。", "’", "‘"};
-
-    char *symbol_list_need_shift_press[] = {"~", "{", "}", "|", ":", "\"\"", "<", ">", "?",
-                                            "_", "+","!", "@", "#", "$", "%", "^",
-                                            "&", "*", "(",")"};
-
-    char *chinese_symbol_shift_press[] = {"：", "“”", "《", "》", "？",
-                                          "——", "！" , "￥", "……","（","）"};
+    const char *chinese_symbol_shift_press[] = {"：", "“”", "《", "》", "？",
+                                                "——", "！" , "￥", "……","（","）"};
 
 /****************************虚键码列表********************************/
-    int alphabet_code[] = {65, 66, 67, 68, 69, 70,
-                           71, 72, 73, 74, 75, 76,
-                           77, 78, 79, 80, 81, 82,
-                           83, 84, 85, 86, 87, 88,
-                           89, 90, 48, 49, 50, 51,  // 48 以后是数组
-                           52, 53, 54, 55, 56, 57};  // 虚拟键码
-
-    int function_code[] = {VK_CONTROL, VK_MENU, VK_SHIFT, VK_F1, VK_F2, VK_F3,
-                           VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10,
-                           VK_F11, VK_F12, VK_ESCAPE, VK_SPACE, VK_DELETE, VK_TAB,
-                           VK_RETURN, VK_CAPITAL, VK_CLEAR, VK_BACK, VK_LWIN, VK_PAUSE,
-                           VK_PRIOR, VK_NEXT, VK_LEFT, VK_RIGHT, VK_DOWN, VK_UP, VK_INSERT
-    };
-
     int symbol_not_shift_code[] = {VK_OEM_3, VK_OEM_4, VK_OEM_6, VK_OEM_5, VK_OEM_1, VK_OEM_7, 188,
                                    190, VK_OEM_2, VK_OEM_MINUS, VK_OEM_PLUS, 188, 190, VK_OEM_7,
                                    VK_OEM_7};
@@ -846,16 +739,11 @@ void PressKey(char *key) // 按键
             input.ki.wVk = alphabet_code[i]; // 指定模拟按下的键为 目标 键
             input.ki.dwFlags = 0; // 指定键盘按下事件，dwFlags 为 0
             SendInput(1, &input, sizeof(INPUT)); // 发送按键事件给系统
-            flag_up.key_up_1 = false;  // 单键
-            flag_up.key_name = alphabet_code[i];
-
 
             // 模拟释放目标键
             input.ki.wVk = alphabet_code[i]; // 指定模拟释放的键仍然是 目标 键
             input.ki.dwFlags = KEYEVENTF_KEYUP; // 指定键盘释放事件，dwFlags 设置为 KEYEVENTF_KEYUP
             SendInput(1, &input, sizeof(INPUT)); // 再次发送按键事件给系统
-            flag_up.key_up_1 = true;  // 单键
-            flag_up.key_name = 0;
             break;
         }
     }
@@ -876,14 +764,10 @@ void PressKey(char *key) // 按键
             input.ki.wVk = function_code[i]; // 指定模拟按下的键为 目标 键
             input.ki.dwFlags = 0; // 指定键盘按下事件，dwFlags 为 0
             SendInput(1, &input, sizeof(INPUT)); // 发送按键事件给系统
-            flag_up.key_up_1 = true;  // 一个按键
-            flag_up.key_name = function_code[i];
 
             input.ki.wVk = function_code[i]; // 指定模拟释放的键仍然是 目标 键
             input.ki.dwFlags = KEYEVENTF_KEYUP; // 指定键盘释放事件，dwFlags 设置为 KEYEVENTF_KEYUP
             SendInput(1, &input, sizeof(INPUT)); // 再次发送按键事件给系统
-            flag_up.key_up_1 = true;
-            flag_up.key_name = 0;
             break;
         }
     }
@@ -904,14 +788,10 @@ void PressKey(char *key) // 按键
             input.ki.wVk = symbol_not_shift_code[i]; // 指定模拟按下的键为 目标 键
             input.ki.dwFlags = 0; // 指定键盘按下事件，dwFlags 为 0
             SendInput(1, &input, sizeof(INPUT)); // 发送按键事件给系统
-            flag_up.key_up_1 = true;
-            flag_up.key_name = symbol_not_shift_code[i];
 
             input.ki.wVk = symbol_not_shift_code[i]; // 指定模拟释放的键仍然是 目标 键
             input.ki.dwFlags = KEYEVENTF_KEYUP; // 指定键盘释放事件，dwFlags 设置为 KEYEVENTF_KEYUP
             SendInput(1, &input, sizeof(INPUT)); // 再次发送按键事件给系统
-            flag_up.key_up_1 = false;
-            flag_up.key_name = 0;
             break;
         }
     }
@@ -934,16 +814,10 @@ void PressKey(char *key) // 按键
             inputs[1].ki.wVk = symbol_need_shift_code[i]; // '目标参数'键的虚拟键码
             inputs[1].ki.dwFlags = 0; // 表示按下按键
             SendInput(2, inputs, sizeof (INPUT));  // 发生指令按下shift与参数按键
-            flag_up.key_up_2 = false;
-            flag_up.key_shift = false;
-            flag_up.key_name = symbol_need_shift_code[i];
 
             inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
             inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
             SendInput(2, inputs, sizeof(INPUT));  // 同时释放
-            flag_up.key_up_2 = true;
-            flag_up.key_shift = true;
-            flag_up.key_name = 0;
             break;
         }
     }
@@ -966,16 +840,10 @@ void PressKey(char *key) // 按键
             inputs[1].ki.wVk = chinese_symbol_shift_code[i]; // '目标参数'键的虚拟键码
             inputs[1].ki.dwFlags = 0; // 表示按下按键
             SendInput(2, inputs, sizeof (INPUT));  // 发生指令按下shift与参数按键
-            flag_up.key_up_2 = false;
-            flag_up.key_shift = false;
-            flag_up.key_name = chinese_symbol_shift_code[i];
 
             inputs[0].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
             inputs[1].ki.dwFlags = KEYEVENTF_KEYUP; // 表示按键释放
             SendInput(2, inputs, sizeof(INPUT));  // 同时释放
-            flag_up.key_up_2 = true;
-            flag_up.key_shift = true;
-            flag_up.key_name = 0;
             break;
         }
     }
@@ -986,31 +854,15 @@ void PressKey(char *key) // 按键
 void WriteStr(const char str_print[], int str_size)
 {
     bool shift_up = false;
-    // 输入英文字符窜的函数
-    /*************************** 按键列表 ***************************/
-    char *alphabet_list[] = {"a", "b", "c", "d", "e", "f", "g",
-                             "h", "i", "j", "k", "l", "m",
-                             "n", "o", "p", "q", "r", "s",
-                             "t", "u", "v", "w", "x", "y", "z"  // 26字母
-            ,"0", "1", "2", "3", "4", "5", "6"
-            , "7", "8", "9", };  // 按键列  // 字母列表
 
+    const char *symbol_list_not_shift_press[] = {"`", "[", "]", "\\", ";", "''", ",", ".", "/",
+                                                 "-", "=", "，", "。", "’", "‘"};
 
-
-    char *symbol_list_not_shift_press[] = {"`", "[", "]", "\\", ";", "''", ",", ".", "/",
-                                           "-", "=", "，", "。", "’", "‘"};
-
-    char *symbol_list_need_shift_press[] = {"~", "{", "}", "|", ":", "\"\"", "<", ">", "?",
-                                            "_", "+","!", "@", "#", "$", "%", "^",
-                                            "&", "*", "(",")"};
+    const char *symbol_list_need_shift_press[] = {"~", "{", "}", "|", ":", "\"\"", "<", ">", "?",
+                                                  "_", "+","!", "@", "#", "$", "%", "^",
+                                                  "&", "*", "(",")"};
 
 /****************************虚键码列表********************************/
-    int alphabet_code[] = {65, 66, 67, 68, 69, 70,
-                           71, 72, 73, 74, 75, 76,
-                           77, 78, 79, 80, 81, 82,
-                           83, 84, 85, 86, 87, 88,
-                           89, 90, 48, 49, 50, 51,  // 48 以后是数组
-                           52, 53, 54, 55, 56, 57};  // 虚拟键码
 
 
     int symbol_not_shift_code[] = {VK_OEM_3, VK_OEM_4, VK_OEM_6, VK_OEM_5, VK_OEM_1, VK_OEM_7, 188,
@@ -1260,7 +1112,7 @@ void FreePasteStr(PasteStrStructs * clipboardText)
 /************** 快捷键注册 ***********************/
 
 // 定义全局变量来保存钩子句柄
-HHOOK hHook = NULL;      // HHOOK 类型用于保存钩子句柄
+HHOOK hHook = NULL;      // HHOOK 类型用于保存钩子句柄;
 
 HotKeyList *head = NULL;  // 列表头指针
 
@@ -1270,14 +1122,14 @@ Func_List fs;  // 实例化函数列表结构体
 // 键盘钩子的回调函数
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    char *button_list[] = {"a", "b", "c", "d", "e", "f", "g",
-                           "h", "i", "j", "k", "l", "m",
-                           "n", "o", "p", "q", "r", "s",
-                           "t", "u", "v", "w", "x", "y", "z",  // 26字母
-                           "0", "1", "2", "3", "4", "5", "6",
-                           "7", "8", "9", "ctrl", "alt", "shift", "enter",
-                           "F1", "F2", "F3", "F4", "F5","F6",
-                           "F7", "F8", "F9", "F10", "F11", "F12", "space", "esc"};  // 按键列
+    const char *button_list[] = {"a", "b", "c", "d", "e", "f", "g",
+                                 "h", "i", "j", "k", "l", "m",
+                                 "n", "o", "p", "q", "r", "s",
+                                 "t", "u", "v", "w", "x", "y", "z",  // 26字母
+                                 "0", "1", "2", "3", "4", "5", "6",
+                                 "7", "8", "9", "ctrl", "alt", "shift", "enter",
+                                 "F1", "F2", "F3", "F4", "F5","F6",
+                                 "F7", "F8", "F9", "F10", "F11", "F12", "space", "esc"};  // 按键列
 
     int button_code_list[] = {65, 66, 67, 68, 69, 70,
                               71, 72, 73, 74, 75, 76,
@@ -2330,20 +2182,6 @@ void ListenHotKEy()
     }
 
 }
-//// 这个函数将在程序结束前被调用
-void ReleaseKey(WORD vkCode, bool *keyUpFlag)
-{
-    INPUT input = {0};
-    input.type = INPUT_KEYBOARD;
-    input.ki.wVk = vkCode;  // 键位吗码
-    if (!*keyUpFlag)  // 如果被按下结构体返回true反之返回False
-    {
-        // 如果之前按键被按下了，现在需要释放
-        input.ki.dwFlags = KEYEVENTF_KEYUP;
-        SendInput(1, &input, sizeof(INPUT));
-        *keyUpFlag = true; // 更新标志，表示按键已释放
-    }
-}
 
 void free_funcs()
 {
@@ -2459,27 +2297,20 @@ void free_funcs()
 
 void cleanup_check() {
     // 释放 Ctrl、Alt、Shift 和 Win 键
-    if (flag_up.key_ctrl)
-    {
-        ReleaseKey(VK_CONTROL, &flag_up.key_ctrl);
-    }
-    else if (flag_up.key_alt)
-    {
-        ReleaseKey(VK_MENU, &flag_up.key_alt);
-    }
-    else if (flag_up.key_shift)
-    {
-        ReleaseKey(VK_SHIFT, &flag_up.key_shift);
-    }
-    if (flag_up.key_win)
-    {
-        ReleaseKey(VK_LWIN, &flag_up.key_win);
-    }
 
-    // 释放最后一个按下的键
-    if (flag_up.key_name != 0)
+    ////// 释放键盘 //////
+    int len = sizeof (free_keys.key_code)/sizeof (free_keys.key_code[0]);
+    for (int f=0; f<len; f++)
     {
-        ReleaseKey((WORD)flag_up.key_name, &flag_up.key_up_1);
+        if (free_keys.key_code[f] !=0)
+        {
+            INPUT input = {0};
+            input.type = INPUT_KEYBOARD;
+            input.ki.wVk = free_keys.key_code[f];  // 键位吗码
+            input.ki.dwFlags = KEYEVENTF_KEYUP;
+            SendInput(1, &input, sizeof(INPUT));
+            printf("%d: in 2305\n", free_keys.key_code[f]);
+        }
     }
 
     // 释放鼠标按键
@@ -2505,7 +2336,7 @@ void cleanup_check() {
     }
 
     // 确保钩子被卸载
-    if (!hHook)
+    if (hHook)  // 如果没被正确卸载则hHook返回
     {
         // 确保钩子被卸载
         UnhookWindowsHookEx(hHook);       // 卸载钩子
@@ -2517,6 +2348,72 @@ void cleanup_check() {
 
 }
 
+/************* 游戏按键判定 game mode ************/
+int ff = 1;
+const char *button_list[] = {"a", "b", "c", "d", "e", "f", "g",
+                             "h", "i", "j", "k", "l", "m",
+                             "n", "o", "p", "q", "r", "s",
+                             "t", "u", "v", "w", "x", "y", "z",  // 26字母
+                             "0", "1", "2", "3", "4", "5", "6",
+                             "7", "8", "9", "ctrl", "alt", "shift", "enter",
+                             "F1", "F2", "F3", "F4", "F5","F6",
+                             "F7", "F8", "F9", "F10", "F11", "F12", "space", "esc"};  // 按键列
+
+int button_code_list[] = {65, 66, 67, 68, 69, 70,
+                          71, 72, 73, 74, 75, 76,
+                          77, 78, 79, 80, 81, 82,
+                          83, 84, 85, 86, 87, 88,
+                          89, 90, 48, 49, 50, 51,
+                          52, 53, 54, 55, 56, 57, VK_CONTROL,
+                          VK_MENU, VK_SHIFT, VK_RETURN, VK_F1, VK_F2, VK_F3,
+                          VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10,
+                          VK_F11, VK_F12, VK_SPACE, VK_ESCAPE};  // 虚拟键码
+
+
+
+
+
+
+bool KeyDownListen(char *key)
+{
+    // 获取对应的虚键码
+    int button_list_len = sizeof (button_list)/sizeof (button_list[0]);
+    int listen_key_code;
+    for (int i=0; i<button_list_len; i++)
+    {
+        if (strcmp(key, button_list[i])==0)  // 查询键与输入的键是否相同，相同做出处理
+        {
+            listen_key_code = button_code_list[i];
+            break;
+        }
+    }
+    // 执行监听
+    if (GetAsyncKeyState(listen_key_code) & 0x8000)
+    {
+        return True;
+        // 执行按键按下的操作
+    }
+}
+
+
+
+bool KeyUpListen(char *key)
+{
+    bool isPress = False;
+    // 获取对应的虚键码
+    int button_list_len = sizeof (button_list)/sizeof (button_list[0]);
+    int listen_key_code;
+    for (int i=0; i<button_list_len; i++)
+    {
+        if (strcmp(key, button_list[i])==0)  // 查询键与输入的键是否相同，相同做出处理
+        {
+            listen_key_code = button_code_list[i];
+            break;
+        }
+    }
+
+    // 监听部分
+}
 
 /************** 清理部分 ********************/
 void ClearHotKey()  // 注销快捷键(自动注销快捷键调用释放内存的函数)
@@ -2528,7 +2425,6 @@ void ClearHotKey()  // 注销快捷键(自动注销快捷键调用释放内存的函数)
     freeHotKeys();  // 释放内存
     cleanup_check();  // 最后检查是否释放所有按键
     free_funcs();  // 释放分配的函数内存
-
 }
 
 // 信号处理函数，用于处理 SIGINT 信号
@@ -2538,7 +2434,7 @@ void handle_sigint(int sig)
 }
 
 
-void exit_check_work()  // 检查程序退出后执行的任务
+void ExitCheckWork()  // 检查程序退出后执行的任务
 {
     atexit(cleanup_check);  // 退出所执行的任务
 

@@ -2,24 +2,24 @@
 #define KEYBOARD_MAIN_H
 #include <windows.h>
 #include <stdbool.h>
+#define True 1
+#define False 0
 
 /************* press up flag **************/
 
-typedef struct PressUpFlag  // ×îÖÕ´¦ÀíÃ»ÓĞÊÍ·ÅµÄ°´Å¥,trueÎªÊÍ·Å
+typedef struct
 {
-    bool key_up_3;  // Èı¸ö¿ì½İ¼ü
-    bool key_up_2;  // Á½¸ö¿ì½İ¼ü
-    bool key_up_1;  // Ò»¸ö¿ì½İ¼ü
-    bool mouse_up; // Êó±êÌ§Æğ±êÖ¾
-    bool key_ctrl;   // ÅĞ¶Ïctrl
-    bool key_shift;  // ÅĞ¶Ïshift
-    bool key_alt;  // ÅĞ¶Ïalt
-    bool key_win;       // win°´¼ü
-    int key_name;  // ´«Èë²ÎÊı°´¼üÃû³Æ£¨µ¥¸ö°´¼ü£©
-    char *mouse_name;  // ´«Èë²ÎÊı°´¼üÃû³Æ
-}Flags;
+    bool mouse_up;
+    char *mouse_name
+}MouseUps;
+MouseUps flag_up = {true, ""};
 
-Flags flag_up = {true, true, true, true, true, true, true, true, 0, ""};  // Ä¬ÈÏÃ»Ì§Æğ
+typedef struct PressHotKeyNameUp
+{
+    int key_num;  // °´ÏÂµÄÊıÁ¿
+    int key_code[108];
+}PressHotKeyNameUp;  // ÊÍ·Å°´ÏÂµÄ°´¼ü
+PressHotKeyNameUp free_keys = {0, 0}; // ÊÍ·Å°´¼ü
 
 /******************************************/
 
@@ -196,7 +196,7 @@ void ClearHotKey(); // ×¢Ïú¿ì½İ¼ü(×Ô¶¯×¢Ïú¿ì½İ¼üµ÷ÓÃÊÍ·ÅÄÚ´æµÄº¯Êı)
 
 void ListenHotKEy();  // ¼àÌı¿ì½İ¼ü
 
-void exit_check_work();  // Í»È»½áÊø¼ì²é
+void ExitCheckWork();  // Í»È»½áÊø¼ì²é
 
 
 /************* »ñÈ¡×ø±êµÄº¯Êı ***************/
@@ -207,8 +207,12 @@ MousePositionGet GetMousePosition(bool out_put);  // »ñÈ¡¹â±êÄ¿Ç°ËùÔÚµÄ×ø±ê£¬Êó±
 PasteStrStructs PasteStr();  // ´æ´¢·µ»ØµÄ×Ö·û´ÜÄÚÈİ
 
 
+/*************** µ¥¸ö°´¼ü¼àÌıÅĞ¶Ïº¯Êı (ÊÊºÏÓÎÏ·) ****************/
+bool KeyUpListen(char *key);  // ¼àÌı¼üÅÌÌ§Æğ
+bool KeyDownListen(char *key); // ¼àÌı¼üÅÌ°´ÏÂ
+
+
 /******************** Î²²¿ÇåÀí ******************/
-void ReleaseKey(WORD vkCode, bool *keyUpFlag);  // È·±£°´¼üÕæ±»°´ÏÂ
 void cleanup_check();  // Ö´ĞĞÇåÀíÈÎÎñµÄº¯Êı
 void handle_sigint(int sig);  // ¼ì²éÊÇ·ñ±»½ÓÊÜµÄÖÕÖ¹ĞÅºÅ
 void free_funcs();  // ÊÍ·Åº¯ÊıÄÚ´æ
