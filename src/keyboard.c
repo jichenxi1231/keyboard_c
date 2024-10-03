@@ -50,7 +50,7 @@ void MouseMoveTo(int x, int y)
     SetCursorPos(x, y);  // 移动鼠标到某处(设置光标位置)
 }
 
-void MouseDown(char *button)
+void MouseDown(const char *button)
 {
     if (strcmp(button, "left") ==0)
     {
@@ -72,7 +72,7 @@ void MouseDown(char *button)
     }
 }
 
-void MouseUp(char *button)
+void MouseUp(const char *button)
 {
     if  (strcmp(button, "left") ==0)
     {
@@ -224,7 +224,7 @@ void key_up_record(int key_code)  // 记录键盘松开，清空按键
 }
 
 
-void KeyDown(char *key)
+void KeyDown(const char *key)
 {
 /****************列表长度************************/
     int alphabet_list_len = sizeof (alphabet_list)/sizeof (alphabet_list[0]);  // 字母数字长度
@@ -277,7 +277,7 @@ void KeyDown(char *key)
 }
 
 //////// 键盘释放 //////////
-void KeyUp(char *key)
+void KeyUp(const char *key)
 {
     int len = sizeof (free_keys.key_code)/sizeof (free_keys.key_code[0]);
 /****************列表长度************************/
@@ -325,7 +325,7 @@ void KeyUp(char *key)
 //    SendInput(1, &input, sizeof(INPUT));
 }
 
-void PressHotKey(char *key1, char *key2, char *key3)
+void PressHotKey(const char *key1, const char *key2, const char *key3)
 {
     // 如果不使用其他快捷键输入None
     // 这里是查看两个数组，如果参数传入的与数组匹配就索引数组获得按键名称以及索引码
@@ -690,7 +690,7 @@ void PressHotKey(char *key1, char *key2, char *key3)
 
 
 
-void PressKey(char *key) // 按键
+void PressKey(const char *key) // 按键
 {
     const char *symbol_list_not_shift_press[] = {"`", "[", "]", "\\", ";", "''", ",", ".", "/",
                                                  "-", "=", "，", "。", "’", "‘"};
@@ -1623,7 +1623,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 
 // 添加快捷键的函数
-void AddHotKey(char *key1, char *key2, char *key3, char *key4, void (*target_void_func)())
+void AddHotKey(const char *key1, const char *key2, const char *key3, const char *key4, void (*target_void_func)())
 {
     static int four_key_func_size_ctrl_alt_shift = 1;  // 四个快捷键
     static int four_key_func_size_ctrl_shift_alt = 1;
@@ -2309,7 +2309,6 @@ void cleanup_check() {
             input.ki.wVk = free_keys.key_code[f];  // 键位吗码
             input.ki.dwFlags = KEYEVENTF_KEYUP;
             SendInput(1, &input, sizeof(INPUT));
-            printf("%d: in 2305\n", free_keys.key_code[f]);
         }
     }
 
@@ -2374,7 +2373,7 @@ int button_code_list[] = {65, 66, 67, 68, 69, 70,
 
 
 
-bool KeyDownListen(char *key)
+bool KeyDownListen(const char *key)
 {
     // 获取对应的虚键码
     int button_list_len = sizeof (button_list)/sizeof (button_list[0]);
@@ -2397,7 +2396,7 @@ bool KeyDownListen(char *key)
 
 
 
-bool KeyUpListen(char *key)
+bool KeyUpListen(const char *key)
 {
     bool isPress = False;
     // 获取对应的虚键码
@@ -2442,3 +2441,10 @@ void ExitCheckWork()  // 检查程序退出后执行的任务
     signal(SIGINT, handle_sigint);
 }
 
+int main()
+{
+    ExitCheckWork();
+    KeyDown("c");
+
+    return 0;
+}

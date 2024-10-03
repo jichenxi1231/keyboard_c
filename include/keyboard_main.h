@@ -10,7 +10,7 @@
 typedef struct
 {
     bool mouse_up;
-    char *mouse_name
+    const char *mouse_name;
 }MouseUps;
 MouseUps flag_up = {true, ""};
 
@@ -32,7 +32,7 @@ typedef struct ScreenSize  // ÉùÃ÷½á¹¹Ìå»ñÈ¡ÆÁÄ»´óĞ¡
 /************ Êó±ê°´ÏÂÓëÊÍ·Å ************/
 typedef struct
 {
-    char *button;
+    const char *button;
 }MouseDownAndUp;  // ¶¨ÒåÊó±ê°´ÏÂ»òÕßÊÍ·ÅµÄ½á¹¹Ìå
 
 
@@ -54,10 +54,10 @@ typedef struct copy_str_structs  // ×Ö·û´Ü¼ôÇĞµÄ½á¹¹Ìå(·ÀÖ¹ºóĞøÖØ¸´ÀûÓÃÏàÍ¬×Ö·û´
 // ¶¨ÒåÒ»¸ö½á¹¹ÌåÀ´´æ´¢¿ì½İ¼üĞÅÏ¢
 typedef struct HotKey
 {
-    char *key1;          // µÚÒ»¸ö¼üÃû
-    char *key2;          // µÚ¶ş¸ö¼üÃû
-    char *key3;          // µÚÈı¸ö¼üÃû
-    char *key4;          // µÚËÄ¸ö¼üÃû
+    const char *key1;          // µÚÒ»¸ö¼üÃû
+    const char *key2;          // µÚ¶ş¸ö¼üÃû
+    const char *key3;          // µÚÈı¸ö¼üÃû
+    const char *key4;          // µÚËÄ¸ö¼üÃû
 //    void (*function)(void);  // ±»µ÷ÓÃµÄº¯ÊıÖ¸Õë
 } AddHotKeyInput;  // ½ÓÊÜ´«ÈëµÄ²ÎÊı(¿ì½İ¼üÃû³Æ)
 
@@ -96,27 +96,27 @@ typedef struct
     int size_one;
 
     /**** ËÄ¸ö¿ì½İ¼üÃû×Ö ****/
-    char *four_key_name_ctrl_alt_shift[53];
-    char *four_key_name_ctrl_shift_alt[53];
-    char *four_key_name_alt_ctrl_shift[53];
-    char *four_key_name_alt_shift_ctrl[53];
-    char *four_key_name_shift_ctrl_alt[53];
-    char *four_key_name_shift_alt_ctrl[53];
+    const char*four_key_name_ctrl_alt_shift[53];
+    const char*four_key_name_ctrl_shift_alt[53];
+    const char*four_key_name_alt_ctrl_shift[53];
+    const char*four_key_name_alt_shift_ctrl[53];
+    const char*four_key_name_shift_ctrl_alt[53];
+    const char*four_key_name_shift_alt_ctrl[53];
 
 
 ///////////////////////////////////////////////////////
-    char *three_key_name_ctrl_alt[53];  // Èı¿ì½İ¼ü
-    char *three_key_name_ctrl_shift[53];
-    char *three_key_name_alt_ctrl[53];
-    char *three_key_name_alt_shift[53];
-    char *three_key_name_shift_ctrl[53];
-    char *three_key_name_shift_alt[53];
+    const char*three_key_name_ctrl_alt[53];  // Èı¿ì½İ¼ü
+    const char*three_key_name_ctrl_shift[53];
+    const char*three_key_name_alt_ctrl[53];
+    const char*three_key_name_alt_shift[53];
+    const char*three_key_name_shift_ctrl[53];
+    const char*three_key_name_shift_alt[53];
 
-    char *tow_key_name_ctrl[53];  // Ë«¿ì½İ¼ü
-    char *tow_key_name_alt[53];
-    char *tow_key_name_shift[53];
+    const char*tow_key_name_ctrl[53];  // Ë«¿ì½İ¼ü
+    const char*tow_key_name_alt[53];
+    const char*tow_key_name_shift[53];
 
-    char *one_key_name[53];
+    const char*one_key_name[53];
 
     FunctionPtr *funcArray_four_key_ctrl_alt_shift;
     FunctionPtr *funcArray_four_key_ctrl_shift_alt;
@@ -164,9 +164,9 @@ void copy_str_in(copy_str_structs self);  // ¸´ÖÆµ½¼ôÇĞ°åµÄº¯Êı£¬ºóĞø°ü¹üÔÚCopyS
 /***************************** Ö÷¹¦ÄÜÇø **************************************************/
 void MouseMoveTo(int x, int y);  // x,y×ø±ê;
 
-void MouseDown(char *button);  // Êó±ê°´ÏÂ¼üÎ»
+void MouseDown(const char *button);  // Êó±ê°´ÏÂ¼üÎ»
 
-void MouseUp(char *button);  // Êó±êÊÍ·Å
+void MouseUp(const char *button);  // Êó±êÊÍ·Å
 
 void MouseClick(int x, int y, int clicks, char button[]);  // Êó±êµã»÷º¯Êı
 
@@ -176,13 +176,13 @@ void MouseClick(int x, int y, int clicks, char button[]);  // Êó±êµã»÷º¯Êı
 
 void MouseRoll(int move);  // Êó±ê¹öÂÖ,ÕıÊıÏòÉÏ¸ºÊıÏòÏÂ
 
-void KeyDown(char *key);  // ¼üÅÌ°´ÏÂ
+void KeyDown(const char *key);  // ¼üÅÌ°´ÏÂ
 
-void KeyUp(char *key);  // ¼üÅÌÊÍ·Å
+void KeyUp(const char *key);  // ¼üÅÌÊÍ·Å
 
-void PressHotKey(char *key1, char *key2, char *key3);  // °´ÏÂ¿ì½İ¼ü
+void PressHotKey(const char *key1, const char *key2, const char *key3);  // °´ÏÂ¿ì½İ¼ü
 
-void PressKey(char *key); // °´¼ü
+void PressKey(const char *key); // °´¼ü
 
 void WriteStr(const char str_print[], int str_size); // ÊäÈë×Ö·û´Üº¯Êıµ«½ö¿ÉÓÃÓ¢ÎÄ
 
@@ -190,7 +190,7 @@ void CopyStr(const char *str);  // ¸´ÖÆ×Ö·û´Üµ½¼ôÇĞ°å
 
 void FreePasteStr(PasteStrStructs * clipboardText); // ´«²ÎÖ÷º¯ÊıÊµÀı»¯µÄ½á¹¹Ìå£¬ÊÍ·Å»ñÈ¡¼ôÌù°åÄÚÈİÊ±·ÖÅäµÄÄÚ´æ(Ôİ´æ)
 
-void AddHotKey(char *key1, char *key2, char *key3, char *key4, void (*target_void_func)());  // Ìí¼Ó¿ì½İ¼üµÄº¯Êı²»ÊäÈëµÄ´«NULL
+void AddHotKey(const char *key1, const char *key2, const char *key3, const char *key4, void (*target_void_func)());  // Ìí¼Ó¿ì½İ¼üµÄº¯Êı²»ÊäÈëµÄ´«NULL
 
 void ClearHotKey(); // ×¢Ïú¿ì½İ¼ü(×Ô¶¯×¢Ïú¿ì½İ¼üµ÷ÓÃÊÍ·ÅÄÚ´æµÄº¯Êı)
 
@@ -208,8 +208,8 @@ PasteStrStructs PasteStr();  // ´æ´¢·µ»ØµÄ×Ö·û´ÜÄÚÈİ
 
 
 /*************** µ¥¸ö°´¼ü¼àÌıÅĞ¶Ïº¯Êı (ÊÊºÏÓÎÏ·) ****************/
-bool KeyUpListen(char *key);  // ¼àÌı¼üÅÌÌ§Æğ
-bool KeyDownListen(char *key); // ¼àÌı¼üÅÌ°´ÏÂ
+bool KeyUpListen( const char *key);  // ¼àÌı¼üÅÌÌ§Æğ
+bool KeyDownListen(const char *key); // ¼àÌı¼üÅÌ°´ÏÂ
 
 
 /******************** Î²²¿ÇåÀí ******************/
